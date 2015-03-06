@@ -1,6 +1,6 @@
 
 grammar SQL;
-
+/*---------------TERMINALES Y PALABRAS RESERVADAS-------------------------- */
 CREATE: 'CREATE';
 DATABASE: 'DATABASE';
 DATABASES: 'DATABASES';
@@ -27,11 +27,30 @@ ADD:'ADD';
 COLUMN:'COLUMNS';
 RENAME:'RENAME';
 TO:'TO';
+AND: 'AND';
+OR: 'OR';
+NOT: 'NOT';
+INSERT:'INSERT';
+INTO:'INTO';
+WHERE:'WHERE';
+UPDATE:'UPDATE';
+SET:'SET';
+DELETE:'DELETE';
+SELECT: 'SELECT';
+ORDER:'ORDER';
+BY: 'BY';
+ASC: 'ASC';
+DESC: 'DESC';
 fragment LETTER: ('a'..'z'|'A'..'Z') ;
 fragment DIGIT : '0'..'9' ;
+DATE_VAL: DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ;
+NUM: DIGIT(DIGIT)* ;
 ID : LETTER( LETTER | DIGIT)* ;
+CHAR_VAL: '\'' ~('\r' | '\n' | '"')* '\'' ;
+FLOAT_VAL: NUM'.'NUM;
+/*---------------------------------------------------------- */
 
-
+/* ----------------------GRAMATICA------------------------- */
 query: ddlQuery | dmlQuery ;
 /*-----DDL QUERIES---- */
 ddlQuery:   createDbStmt|
@@ -55,11 +74,11 @@ dropDbStmt: DROP DATABASE ID;
 showDbStmt: SHOW DATABASES;
 useDbStmt: USE DATABASE ID;
 
-createTableStmt: CREATE TABLE tableName '('    (columnDecl | columnDecl(','columnDecl)+ )    ')';  //Revisar Constraints: son por columna o por tabla?
+createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) (CONSTRAINT (colConstraint)*)?    ')';  //Revisar Constraints: son por columna o por tabla?
 	tableName: ID;
 	
-	columnDecl: colName tipo (CONSTRAINT colConstraint)? ;
-		tipo: INT|FLOAT|DATE|CHAR; //Formato DATE: ‘AAAA-MM-DD’
+	columnDecl: colName tipo  ;
+		tipo: INT|FLOAT|DATE|CHAR; //Formato DATE: â€˜AAAA-MM-DDâ€™
 		colName: ID;
 		
 		colConstraint:  pkNombre PRIMARY KEY '(' (ID)+')'
@@ -84,7 +103,33 @@ dropTableStmt: DROP TABLE ID;
 showTableStmt: SHOW TABLES;
 showColumnsStmt: SHOW COLUMNS FROM ID;
 
+expression: andexpr | expression OR andexpr;
+	andexpr: factor | andexpr AND factor;
+	factor: primary | NOT primary;
+	primary: compareExpr | '(' expression ')';
+	compareExpr : term  rel_op term;
+	term: column | NUM | FLOAT_VAL | DATE_VAL | CHAR_VAL;
 
+column: ID| table'.'ID;
+table: ID;
+rel_op : '<' | '>' | '<=' | '>=' | '=' | '<>' ;
 /* END ----- DDL QUERIES----- */
 
-dmlQuery: ; 
+dmlQuery: insertStmt | updateStmt | deleteStmt| selectStmt; 
+
+insertStmt: INSERT INTO table (columnList)? valueList ;
+	columnList:  '('  ID (','ID)* ')';
+	valueList: val(val)* ;
+	val: NUM | FLOAT_VAL | DATE_VAL | CHAR_VAL ;
+
+updateStmt: UPDATE table SET columnsUpdate '=' val (',' columnsUpdate '=' val)* (WHERE expression)? ;
+	columnsUpdate:ID ;
+	
+
+deleteStmt: DELETE FROM table (WHERE expression)?;
+
+selectStmt: SELECT ('*'| selectList) FROM table WHERE expression (orderExpr)? ;
+	selectList: ID(','ID);
+	orderExpr: ORDER BY (orderExpr(','orderExpr)*);
+	orderTerm: colName(ASC|DESC)? ;
+	
