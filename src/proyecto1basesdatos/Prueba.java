@@ -12,4 +12,6 @@ package proyecto1basesdatos;
  */
 public class Prueba {
     
+    //Agregue lo que faltaba
+    
 }
