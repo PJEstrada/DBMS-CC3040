@@ -54,33 +54,33 @@ FLOAT_VAL: NUM'.'NUM;
 query: ddlQuery | dmlQuery ;
 /*-----DDL QUERIES---- */
 ddlQuery:   createDbStmt|
-			alterDbStmt|
-			dropDbStmt|
-			showDbStmt|
-			useDbStmt|
-			createTableStmt|
-			alterTableStmt|
-			dropTableStmt|
-			showTableStmt|
-			showColumnsStmt;
+            alterDbStmt|
+            dropDbStmt|
+            showDbStmt|
+            useDbStmt|
+            createTableStmt|
+            alterTableStmt|
+            dropTableStmt|
+            showTableStmt|
+            showColumnsStmt;
 			
 createDbStmt: CREATE DATABASE ID; 
 
 alterDbStmt: ALTER DATABASE dbName RENAMETO newDbName;
-	dbName: ID;
-	newDbName:ID;
+
+            dbName: ID;
+            newDbName:ID;
 	
 dropDbStmt: DROP DATABASE ID;
 showDbStmt: SHOW DATABASES;
 useDbStmt: USE DATABASE ID;
 
 createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) (CONSTRAINT (colConstraint)*)?    ')';  //Revisar Constraints: son por columna o por tabla?
-	tableName: ID;
 	
+        tableName: ID;
 	columnDecl: colName tipo  ;
 		tipo: INT|FLOAT|DATE|CHAR; //Formato DATE: ‘AAAA-MM-DD’
 		colName: ID;
-		
 		colConstraint:  pkNombre PRIMARY KEY '(' (ID)+')'
 						|fkNombre FOREIGN KEY '(' (ID)+ ')' REFERENCES idTabla '('(ID)+')' 
 						|chNombre CHECK '(' expConstraint ')' ;
@@ -90,7 +90,9 @@ createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) (C
 			pkNombre: ID;
 			expConstraint: ; //PENDIENTE
 
-alterTableStmt: ALTER TABLE alterName RENAME TO newName #renameAlter | ALTER TABLE ID (accion | accion(','accion)+  ) #accionAlter ;
+alterTableStmt: ALTER TABLE alterName RENAME TO newName #renameAlter 
+                | ALTER TABLE ID (accion | accion(','accion)+  ) #accionAlter ;
+
 	alterName: ID;
 	newName: ID;
 	accion: ADD COLUMN columnName tipo CONSTRAINT colConstraint|
