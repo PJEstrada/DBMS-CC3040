@@ -1,4 +1,7 @@
 package proyecto1basesdatos;
+
+import javax.swing.JTextArea;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -10,6 +13,16 @@ package proyecto1basesdatos;
  * @author Al
  */
 public class Loader extends SQLBaseVisitor<Object>{
+    
+        JTextArea  console;
+        public Loader(JTextArea s){
+            console = s;
+        
+        }
+        
+        public void error(String s){
+            console.setText(s);
+        }
 
 	@Override
 	public Object visitExpression(SQLParser.ExpressionContext ctx) {
@@ -37,8 +50,17 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitCreateDbStmt(SQLParser.CreateDbStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitCreateDbStmt(ctx);
+                //Tomamos el nombre
+                String name = ctx.ID().getText();
+                //Intentamos crear la base de datos, si ya existe capturamos la excepcion y mostramos error
+                try{
+                    DB database = new DB(name);
+                    return database;
+                }
+                catch(Exception e){
+                    error(e.getMessage());
+                }
+                return name;
 	}
 
 	@Override

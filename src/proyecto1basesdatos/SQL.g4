@@ -117,7 +117,7 @@ table: ID;
 rel_op : '<' | '>' | '<=' | '>=' | '=' | '<>' ;
 /* END ----- DDL QUERIES----- */
 
-dmlQuery: insertStmt | updateStmt | deleteStmt| selectStmt; 
+dmlQuery: insertStmt | updateStmt | deleteStmt| selectStmt ; 
 
 insertStmt: INSERT INTO table (columnList)? valueList ;
 	columnList:  '('  ID (','ID)* ')';
