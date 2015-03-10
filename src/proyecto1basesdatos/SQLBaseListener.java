@@ -1,3 +1,4 @@
+package proyecto1basesdatos;
 // Generated from SQL.g4 by ANTLR 4.4
 
 import org.antlr.v4.runtime.ParserRuleContext;
