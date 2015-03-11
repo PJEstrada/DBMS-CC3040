@@ -54,49 +54,47 @@ FLOAT_VAL: NUM'.'NUM;
 query: ddlQuery | dmlQuery ;
 /*-----DDL QUERIES---- */
 ddlQuery:   createDbStmt|
-            alterDbStmt|
-            dropDbStmt|
-            showDbStmt|
-            useDbStmt|
-            createTableStmt|
-            alterTableStmt|
-            dropTableStmt|
-            showTableStmt|
-            showColumnsStmt;
+			alterDbStmt|
+			dropDbStmt|
+			showDbStmt|
+			useDbStmt|
+			createTableStmt|
+			alterTableStmt|
+			dropTableStmt|
+			showTableStmt|
+			showColumnsStmt;
 			
 createDbStmt: CREATE DATABASE ID; 
 
 alterDbStmt: ALTER DATABASE dbName RENAMETO newDbName;
-
-            dbName: ID;
-            newDbName:ID;
+	dbName: ID;
+	newDbName:ID;
 	
 dropDbStmt: DROP DATABASE ID;
 showDbStmt: SHOW DATABASES;
 useDbStmt: USE DATABASE ID;
 
-createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) (CONSTRAINT (colConstraint)*)?    ')';  //Revisar Constraints: son por columna o por tabla?
+createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) (   (colConstraint)*)?   ')';  //Revisar Constraints: por tabla
+	tableName: ID;
 	
-        tableName: ID;
 	columnDecl: colName tipo  ;
-		tipo: INT|FLOAT|DATE|CHAR; //Formato DATE: â€˜AAAA-MM-DDâ€™
+		tipo: INT|FLOAT|DATE|CHAR; //Formato DATE: ‘AAAA-MM-DD’
 		colName: ID;
-		colConstraint:  pkNombre PRIMARY KEY '(' (ID)+')'
+		
+		colConstraint: CONSTRAINT pkNombre PRIMARY KEY '(' (ID)+')'
 						|fkNombre FOREIGN KEY '(' (ID)+ ')' REFERENCES idTabla '('(ID)+')' 
-						|chNombre CHECK '(' expConstraint ')' ;
+						|chNombre CHECK '(' expression ')' ;
 			chNombre: ID;				
 			idTabla: ID ;
 			fkNombre:ID;
 			pkNombre: ID;
-			expConstraint: ; //PENDIENTE
+			 //PENDIENTE
 
-alterTableStmt: ALTER TABLE alterName RENAME TO newName #renameAlter 
-                | ALTER TABLE ID (accion | accion(','accion)+  ) #accionAlter ;
-
+alterTableStmt: ALTER TABLE alterName RENAME TO newName #renameAlter | ALTER TABLE ID (accion | accion(','accion)+  ) #accionAlter ;
 	alterName: ID;
 	newName: ID;
 	accion: ADD COLUMN columnName tipo CONSTRAINT colConstraint|
-			ADD CONSTRAINT colConstraint| /* constraint de tabla o de columna?? */
+			ADD CONSTRAINT colConstraint| /* constraint de tabla  */
 			DROP COLUMN columnName|
 			DROP CONSTRAINT ID;
 		columnName: ID;
@@ -117,7 +115,7 @@ table: ID;
 rel_op : '<' | '>' | '<=' | '>=' | '=' | '<>' ;
 /* END ----- DDL QUERIES----- */
 
-dmlQuery: insertStmt | updateStmt | deleteStmt| selectStmt ; 
+dmlQuery: insertStmt | updateStmt | deleteStmt| selectStmt; 
 
 insertStmt: INSERT INTO table (columnList)? valueList ;
 	columnList:  '('  ID (','ID)* ')';
@@ -134,4 +132,5 @@ selectStmt: SELECT ('*'| selectList) FROM table WHERE expression (orderExpr)? ;
 	selectList: ID(','ID);
 	orderExpr: ORDER BY (orderExpr(','orderExpr)*);
 	orderTerm: colName(ASC|DESC)? ;
+	
 	

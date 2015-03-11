@@ -43,12 +43,6 @@ public class Loader extends SQLBaseVisitor<Object>{
 	}
 
 	@Override
-	public Object visitExpConstraint(SQLParser.ExpConstraintContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitExpConstraint(ctx);
-	}
-
-	@Override
 	public Object visitCreateDbStmt(SQLParser.CreateDbStmtContext ctx) {
                 //Tomamos el nombre
                 String name = ctx.ID().getText();
