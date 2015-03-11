@@ -5,7 +5,12 @@
  */
 package proyecto1basesdatos;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 
 /**
@@ -15,7 +20,7 @@ import java.util.ArrayList;
 public class DB {
     String name;  //Nombre de la base de datos
     ArrayList<Tabla> tablas;  //tablas que contiene la base de datos
-    
+    String dir;
     
     public DB(String nombre) throws Exception{
         this.name= nombre;
@@ -25,6 +30,7 @@ public class DB {
         //Creamos carpeta  con el nombre de la base de datos
         String currentDir = System.getProperty("user.dir");
         System.out.println(currentDir);
+        dir=currentDir+"/DBMS/"+nombre+"/";
         File directorio  = new File(currentDir+"/DBMS/"+nombre);
 
        //Si no existe el directorio lo creamos
@@ -35,6 +41,8 @@ public class DB {
          try{
              directorio.mkdir();
              result = true;
+             writeMetadata();
+             System.out.println("Creado el archivo metadata de la base de datos: ");
           } catch(SecurityException se){
              System.out.println("No es posible crear directorio, revise permisos de administrador. " + nombre);
           } 
@@ -64,7 +72,21 @@ public class DB {
     }
     // Metodo para escribir la descripcion de la base de datos en el archivo metadata.dat
     public void writeMetadata(){
-        
+        Writer writer = null;
+
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+            new FileOutputStream(dir+name+"_metadata.dat"), "utf-8"));
+            writer.write(this.toString());
+        } catch (IOException ex) {
+          // report
+        } finally {
+           try {writer.close();} catch (Exception ex) {}
+        }       
+
+    }
+    public static void destroyDb(){
+    
     
     }
 }
