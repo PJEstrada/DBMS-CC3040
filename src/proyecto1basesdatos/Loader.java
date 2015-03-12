@@ -15,6 +15,7 @@ import javax.swing.JTextArea;
 public class Loader extends SQLBaseVisitor<Object>{
     
         JTextArea  console;
+        
         public Loader(JTextArea s){
             console = s;
         
@@ -30,6 +31,7 @@ public class Loader extends SQLBaseVisitor<Object>{
 		return super.visitExpression(ctx);
 	}
 
+
 	@Override
 	public Object visitAlterDbStmt(SQLParser.AlterDbStmtContext ctx) {
 		// TODO Auto-generated method stub
@@ -41,7 +43,14 @@ public class Loader extends SQLBaseVisitor<Object>{
 		// TODO Auto-generated method stub
 		return super.visitAccionAlter(ctx);
 	}
-
+	@Override
+	public Object visitDropDbStmt(SQLParser.DropDbStmtContext ctx) {
+		
+		String name = ctx.ID().getText();
+                DB.destroyDb(name);
+                return name;
+                
+	}
 	@Override
 	public Object visitCreateDbStmt(SQLParser.CreateDbStmtContext ctx) {
                 //Tomamos el nombre
@@ -52,7 +61,8 @@ public class Loader extends SQLBaseVisitor<Object>{
                     return database;
                 }
                 catch(Exception e){
-                    error(e.getMessage());
+                    String s = e.getMessage();
+                    Frame.jTextArea2.setText(s);
                 }
                 return name;
 	}
@@ -279,11 +289,6 @@ public class Loader extends SQLBaseVisitor<Object>{
 		return super.visitFactor(ctx);
 	}
 
-	@Override
-	public Object visitDropDbStmt(SQLParser.DropDbStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitDropDbStmt(ctx);
-	}
 
 	@Override
 	public Object visitAccion(SQLParser.AccionContext ctx) {

@@ -11,6 +11,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
@@ -36,6 +39,7 @@ public class DB {
        //Si no existe el directorio lo creamos
        if (!directorio.exists()) {
          System.out.println("Creando  Directorio: " + nombre);
+         Frame.jTextArea2.setText("Creando  Directorio: \n" + nombre);
          boolean result = false;
 
          try{
@@ -43,8 +47,10 @@ public class DB {
              result = true;
              writeMetadata();
              System.out.println("Creado el archivo metadata de la base de datos: ");
+             Frame.jTextArea2.append("Creado el archivo metadata de la base de datos: \n");
           } catch(SecurityException se){
              System.out.println("No es posible crear directorio, revise permisos de administrador. " + nombre);
+             Frame.jTextArea2.append("No es posible crear directorio, revise permisos de administrador. \n" + nombre);
           } 
          
           if(result) {    
@@ -85,8 +91,23 @@ public class DB {
         }       
 
     }
-    public static void destroyDb(){
-    
-    
+    public static void destroyDb(String name){
+        String currentDir = System.getProperty("user.dir");
+        File directorio  = new File(currentDir+"/DBMS/"+name);
+        boolean existe = directorio.exists();
+        deleteFolder(directorio);           
     }
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }    
 }
