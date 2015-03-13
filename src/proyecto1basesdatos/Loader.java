@@ -14,15 +14,15 @@ import javax.swing.JTextArea;
  */
 public class Loader extends SQLBaseVisitor<Object>{
     
-        JTextArea  console;
+        DBMS  dbms;
         
-        public Loader(JTextArea s){
-            console = s;
+        public Loader(DBMS dbms){
+            this.dbms = dbms;
         
         }
         
         public void error(String s){
-            console.setText(s);
+            Frame.jTextArea2.setText(s);
         }
 
 	@Override
@@ -47,9 +47,16 @@ public class Loader extends SQLBaseVisitor<Object>{
 	public Object visitDropDbStmt(SQLParser.DropDbStmtContext ctx) {
 		
 		String name = ctx.ID().getText();
-                DB.destroyDb(name);
-                return name;
+                boolean fueDestruida = DB.destroyDb(name);
+                if(!fueDestruida){
+                    Frame.jTextArea2.setText("ERROR: no se encuentra la base de datos: "+name);
+                    return "ERROR";
+                }
+                else{
+                    return name;
                 
+                }
+                  
 	}
 	@Override
 	public Object visitCreateDbStmt(SQLParser.CreateDbStmtContext ctx) {

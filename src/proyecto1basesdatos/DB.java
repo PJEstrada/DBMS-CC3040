@@ -9,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -45,9 +46,19 @@ public class DB {
          try{
              directorio.mkdir();
              result = true;
-             writeMetadata();
-             System.out.println("Creado el archivo metadata de la base de datos: ");
+             //Creamos el objeto meta data
+             DBMetaData dbm = new DBMetaData(name);
+             //Escribimos el archivo metadata
+             dbm.writeMetadata(directorio);
+             
+             FileOutputStream fileOut =new FileOutputStream(dir+"db.dat");             
+             ObjectOutputStream out = new ObjectOutputStream(fileOut);
+             out.writeObject(dbm);
+            // writeMetadata();
              Frame.jTextArea2.append("Creado el archivo metadata de la base de datos: \n");
+             
+             
+             
           } catch(SecurityException se){
              System.out.println("No es posible crear directorio, revise permisos de administrador. " + nombre);
              Frame.jTextArea2.append("No es posible crear directorio, revise permisos de administrador. \n" + nombre);
@@ -76,7 +87,34 @@ public class DB {
         
        return s;
     }
-    // Metodo para escribir la descripcion de la base de datos en el archivo metadata.dat
+
+    public static boolean destroyDb(String name){
+        String currentDir = System.getProperty("user.dir");
+        File directorio  = new File(currentDir+"/DBMS/"+name);
+        boolean existe = directorio.exists();
+        if(existe){
+            deleteFolder(directorio);
+            return true;
+        }
+        else{
+            return false;
+        }
+         
+    }
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
+    
     public void writeMetadata(){
         Writer writer = null;
 
@@ -91,23 +129,4 @@ public class DB {
         }       
 
     }
-    public static void destroyDb(String name){
-        String currentDir = System.getProperty("user.dir");
-        File directorio  = new File(currentDir+"/DBMS/"+name);
-        boolean existe = directorio.exists();
-        deleteFolder(directorio);           
-    }
-    public static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if(files!=null) { //some JVMs return null for empty dirs
-            for(File f: files) {
-                if(f.isDirectory()) {
-                    deleteFolder(f);
-                } else {
-                    f.delete();
-                }
-            }
-        }
-        folder.delete();
-    }    
 }
