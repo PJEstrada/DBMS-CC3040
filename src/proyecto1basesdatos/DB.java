@@ -5,6 +5,7 @@
  */
 package proyecto1basesdatos;
 
+import java.awt.Component;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -40,7 +42,7 @@ public class DB {
        //Si no existe el directorio lo creamos
        if (!directorio.exists()) {
          System.out.println("Creando  Directorio: " + nombre);
-         Frame.jTextArea2.setText("Creando  Directorio: \n" + nombre);
+         Frame.jTextArea2.setText("Creando  Directorio: " + nombre);
          boolean result = false;
 
          try{
@@ -55,14 +57,8 @@ public class DB {
 
              //Reescribimos la data de todo el dbms y sus dbs y tablas relacionadas llamando al metodo Write recursivamente
              DBMS.metaData.writeMetadata();
-             
-             FileOutputStream fileOut =new FileOutputStream(dir+"db.dat");             
-             ObjectOutputStream out = new ObjectOutputStream(fileOut);
-             out.writeObject(dbm);
             // writeMetadata();
              Frame.jTextArea2.append("Creado el archivo metadata de la base de datos: \n");
-             
-             
              
           } catch(SecurityException se){
              System.out.println("No es posible crear directorio, revise permisos de administrador. " + nombre);
@@ -98,14 +94,31 @@ public class DB {
         File directorio  = new File(currentDir+"/DBMS/"+name);
         boolean existe = directorio.exists();
         if(existe){
-            deleteFolder(directorio);
+            // Buscamos la metaData de la base de datos
+            DBMetaData db = DBMS.metaData.findDB(name);
+            if(db!=null){
+                int reg = sumaRegistros(db);
+                int input = JOptionPane.showConfirmDialog((Component) null, "Esta seguro que desea eliminar "+name+" con "+reg+" Registros?","alert", JOptionPane.OK_CANCEL_OPTION);
+                if(input==JOptionPane.OK_OPTION){
+                    //Destruimos directorio
+                    deleteFolder(directorio);     
+                    //Eliminamos la metaData de la base de datos
+                    DBMS.metaData.dbs.remove(db);
+                    DBMS.guardar();
+                    Frame.jTextArea2.setText("Base de datos "+name+" Eliminada.");               
+                }
+            }
+            else{
+                Frame.jTextArea2.setText("Error: No se encuentra metaData de la base de datos");
+            }
+            
             return true;
         }
         else{
             return false;
-        }
-         
+        }     
     }
+    
     public static void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if(files!=null) { //some JVMs return null for empty dirs
@@ -120,18 +133,14 @@ public class DB {
         folder.delete();
     }
     
-    public void writeMetadata(){
-        Writer writer = null;
-
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(
-            new FileOutputStream(dir+name+"_metadata.dat"), "utf-8"));
-            writer.write(this.toString());
-        } catch (IOException ex) {
-          // report
-        } finally {
-           try {writer.close();} catch (Exception ex) {}
-        }       
-
+    private static int sumaRegistros(DBMetaData d){
+        int a =0;
+        for(TablaMetaData t:d.tablas){
+            a+=t.cantRegistros;
+        
+        }
+        return a;
+    
     }
+   
 }

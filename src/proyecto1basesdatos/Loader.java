@@ -68,6 +68,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     return database;
                 }
                 catch(Exception e){
+                    e.printStackTrace();
                     String s = e.getMessage();
                     Frame.jTextArea2.setText(s);
                 }

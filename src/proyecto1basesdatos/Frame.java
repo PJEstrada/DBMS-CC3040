@@ -134,6 +134,7 @@ public class Frame extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         String src = jTextArea1.getText();
         jTextArea2.setText("");
+        this.error=false;
         try{
             SQLLexer lexer  = new SQLLexer(new ANTLRInputStream(src));
             //lexer.removeErrorListeners();

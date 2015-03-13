@@ -18,7 +18,7 @@ import java.util.ArrayList;
  * @author pablo
  */
 public class DBMSMetaData implements Serializable {
-    
+     private static final long serialVersionUID = 6529685098267757691L;
     ArrayList<DBMetaData>  dbs;
     
     public DBMSMetaData(){
@@ -27,6 +27,7 @@ public class DBMSMetaData implements Serializable {
     }
     
     //toString escribe el nombre de cada base de datos y la cantidad de tablas de cada una
+     @Override
     public String toString(){
         String s = "Master \n\r";
         for(DBMetaData d: dbs){
@@ -50,7 +51,23 @@ public class DBMSMetaData implements Serializable {
           System.out.println("Error WriteMetadata DBMS");
         } finally {
            try {writer.close();} catch (Exception ex) {}
-        }       
+        }
+        //Escribimos cada uno de las bases de datos
+        for(DBMetaData d: dbs){
+            d.writeMetadata();
+        
+        }
+    }
+    
+    public DBMetaData findDB(String name){      
+        for(DBMetaData d: dbs){
+            if(d.nombreDB.equals(name)){
+                return d;
+            
+            }
+        
+        }
+        return null;
     }
     
     

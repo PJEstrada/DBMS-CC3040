@@ -13,6 +13,7 @@ import java.util.ArrayList;
  * @author pablo
  */
 public class TablaMetaData implements Serializable{
+    private static final long serialVersionUID = 6529685098267757692L;
     String nombre;
     int cantRegistros;
     ArrayList<String> columnas;

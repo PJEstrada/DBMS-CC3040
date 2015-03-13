@@ -58,7 +58,7 @@ public class DBMS {
              DBMSMetaData dbms = new DBMSMetaData();
              //Escribimos el archivo metadata
              dbms.writeMetadata();
-             
+             metaData = dbms;
 
              try {
                 //Serializamos
