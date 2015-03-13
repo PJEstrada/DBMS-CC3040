@@ -38,9 +38,19 @@ public class DBMSMetaData implements Serializable {
         return s;
     }
     
+    //Pendiente llamar recursivamente
     public void writeMetadata(){
-    
-    
+        Writer writer = null;
+        String currentDir = System.getProperty("user.dir");
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+            new FileOutputStream(currentDir+"/DBMS/master.dat"), "utf-8"));
+            writer.write(this.toString());
+        } catch (IOException ex) {
+          System.out.println("Error WriteMetadata DBMS");
+        } finally {
+           try {writer.close();} catch (Exception ex) {}
+        }       
     }
     
     

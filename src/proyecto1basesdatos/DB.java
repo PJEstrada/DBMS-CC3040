@@ -48,8 +48,13 @@ public class DB {
              result = true;
              //Creamos el objeto meta data
              DBMetaData dbm = new DBMetaData(name);
-             //Escribimos el archivo metadata
-             dbm.writeMetadata(directorio);
+             //Lo agregamos a al DBMS
+             DBMS.metaData.dbs.add(dbm);
+             // Guardamos el archivo serializado del dbms
+             DBMS.guardar();
+
+             //Reescribimos la data de todo el dbms y sus dbs y tablas relacionadas llamando al metodo Write recursivamente
+             DBMS.metaData.writeMetadata();
              
              FileOutputStream fileOut =new FileOutputStream(dir+"db.dat");             
              ObjectOutputStream out = new ObjectOutputStream(fileOut);

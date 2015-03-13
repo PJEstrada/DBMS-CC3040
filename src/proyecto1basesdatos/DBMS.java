@@ -42,6 +42,8 @@ public class DBMS {
                metaData = (DBMSMetaData) in.readObject();
                in.close();
                fileIn.close();
+               
+               
             }catch(Exception i)
             {
                i.printStackTrace();
@@ -70,6 +72,22 @@ public class DBMS {
                  Logger.getLogger(DBMS.class.getName()).log(Level.SEVERE, null, ex);
              }
         }
+    
+    }
+    
+    public static void guardar(){
+             String currentDir = System.getProperty("user.dir");           
+             try {
+                //Serializamos
+                FileOutputStream fileOut =new FileOutputStream(currentDir+"/DBMS/master.ser");           
+                ObjectOutputStream out;                 
+                out = new ObjectOutputStream(fileOut);
+                out.writeObject(metaData);
+                    
+                    
+             } catch (IOException ex) {
+                 Logger.getLogger(DBMS.class.getName()).log(Level.SEVERE, null, ex);
+             }
     
     }
     
