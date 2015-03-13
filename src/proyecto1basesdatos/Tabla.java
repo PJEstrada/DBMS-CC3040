@@ -5,10 +5,14 @@
  */
 package proyecto1basesdatos;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author pablo
  */
 public class Tabla {
     String name;
+    ArrayList<Columna> columnas;
+    ArrayList<Constraint> constraints;
 }

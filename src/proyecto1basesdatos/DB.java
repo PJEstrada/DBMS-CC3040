@@ -42,7 +42,7 @@ public class DB {
        //Si no existe el directorio lo creamos
        if (!directorio.exists()) {
          System.out.println("Creando  Directorio: " + nombre);
-         Frame.jTextArea2.setText("Creando  Directorio: " + nombre);
+         Frame.jTextArea2.setText("Creando  Directorio: " + nombre+"\n ");
          boolean result = false;
 
          try{
@@ -117,6 +117,49 @@ public class DB {
         else{
             return false;
         }     
+    }
+    
+    public static boolean renameDB(String nameA, String nameB){
+        //Bucamos la base de datos en la metadata
+        DBMetaData d =DBMS.metaData.findDB(nameA);
+        if(d!=null){
+            d.nombreDB =nameB;
+            //Renombramos folder
+            renameFolder(nameA,nameB);
+            //Eliminamos el .dat con el nombre anterior
+            String currentDir = System.getProperty("user.dir");  
+             File directorio  = new File(currentDir+"/DBMS/"+nameB+"/"+nameA+".dat");
+             directorio.delete();
+            //Guardamos los cambios y escribimos la nuevaMetadata
+            DBMS.guardar();
+            DBMS.metaData.writeMetadata();
+            Frame.jTextArea2.setText("Base de datos: "+nameA+" Modificada a : "+nameB);
+            return true;
+        
+        }
+        //Si no la encontramos lanzamos error
+        else{
+            Frame.jTextArea2.setText("Error: No se encuentra metaData de la base de datos"+nameA);
+            return false;
+        }
+    }
+    
+    private static boolean renameFolder(String nameA, String nameB){
+        String currentDir = System.getProperty("user.dir");    
+        File directorio  = new File(currentDir+"/DBMS/"+nameA);
+        //Si el directorio existe lo eliminamos
+        if(directorio.exists()){
+            File f2 = new File(currentDir+"/DBMS/"+nameB);
+            directorio.renameTo(f2);
+            return true;
+        
+        }
+        //Sino retornamos false
+        else{
+            return false;
+        
+        }
+    
     }
     
     public static void deleteFolder(File folder) {

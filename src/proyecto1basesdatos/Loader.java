@@ -34,8 +34,16 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitAlterDbStmt(SQLParser.AlterDbStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitAlterDbStmt(ctx);
+            
+            boolean result = DB.renameDB(ctx.dbName().getText(), ctx.newDbName().getText());
+            if(result){
+              return ctx.newDbName().getText();  
+            
+            }
+            else{
+                return "ERROR";
+            }
+            
 	}
 
 	@Override

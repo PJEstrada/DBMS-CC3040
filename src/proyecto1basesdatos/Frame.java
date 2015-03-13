@@ -133,6 +133,7 @@ public class Frame extends javax.swing.JFrame {
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         String src = jTextArea1.getText();
+        src+=" ";
         jTextArea2.setText("");
         this.error=false;
         try{

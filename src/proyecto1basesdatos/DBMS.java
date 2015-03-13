@@ -25,7 +25,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
  */
 public class DBMS {
     
-    DB currentDB;
+    static String currentDB;
     static DBMSMetaData metaData;
     
     

@@ -19,8 +19,8 @@ public class TablaMetaData implements Serializable{
     ArrayList<String> columnas;
     ArrayList<String> constraints;
     
-        public void writeMetadata(){
-    
+     public void writeMetadata(){
+         
     
     }
     
