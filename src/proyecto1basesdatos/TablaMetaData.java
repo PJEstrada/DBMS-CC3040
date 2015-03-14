@@ -19,6 +19,27 @@ public class TablaMetaData implements Serializable{
     ArrayList<String> columnas;
     ArrayList<String> constraints;
     
+    public TablaMetaData(String n,ArrayList<String>cols, ArrayList<String> constraints){
+        this.nombre = n;
+        cantRegistros =0;
+        columnas = cols;
+        this.constraints= constraints;
+    
+    }
+    
+    public String toString(){
+        String s ="Tabla: "+nombre+" \n\r";
+        s+="Cantidad de Registros: "+cantRegistros+"\n\r";
+        for(String s1: columnas){
+            s+= s1+"  ";
+        }
+        for(String s2:constraints){
+        
+            s+=s2+"  ";
+        }
+        return s;
+    }
+    
      public void writeMetadata(){
          
     

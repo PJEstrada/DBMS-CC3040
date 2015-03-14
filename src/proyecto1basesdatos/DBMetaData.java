@@ -32,11 +32,8 @@ public class DBMetaData implements Serializable {
     @Override
     public String toString(){
         String s ="Base de Datos: "+nombreDB+"\n\r";
-        s+="Numero Tablas: "+tablas.size();
-        for(TablaMetaData t: tablas){
-            s+=t.toString()+"\n\r \n\r";
-        
-        }
+        s+="Numero Tablas: "+tablas.size()+"\n\r";
+       
         return s;
     
     }
@@ -47,13 +44,19 @@ public class DBMetaData implements Serializable {
         try {
             writer = new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream(currentDir+"/DBMS/"+nombreDB+"/"+nombreDB+".dat"), "utf-8"));
-            writer.write(this.toString());
+            String out = this.toString()+"\n\r";
+            for(TablaMetaData d: tablas){
+                out+=d.toString();
+        
+            } 
+            writer.write(out);
         } catch (IOException ex) {
           System.out.println("Error WriteMetadata DB");
         } finally {
            try {writer.close();} catch (Exception ex) {}
         }        
-        
+        //Escribimos cada uno de las tablas
+       
     
     }
 

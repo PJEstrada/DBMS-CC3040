@@ -1,6 +1,8 @@
 package proyecto1basesdatos;
 
+import java.util.ArrayList;
 import javax.swing.JTextArea;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -15,7 +17,8 @@ import javax.swing.JTextArea;
 public class Loader extends SQLBaseVisitor<Object>{
     
         DBMS  dbms;
-        
+        ArrayList<Columna> colsCreate; // Almacena las columnas que se crean en CREATE TABLE para poder verificarlas en los metodos de constraints
+        Tabla tableCreate; 
         public Loader(DBMS dbms){
             this.dbms = dbms;
         
@@ -23,6 +26,17 @@ public class Loader extends SQLBaseVisitor<Object>{
         
         public void error(String s){
             Frame.jTextArea2.setText(s);
+        }
+        //Metodo para encontrar una columna dado un string y una arreglo de columnas. Se utiliza para verificar el primary key de una tabla.
+        public Columna findCol(String name, ArrayList<Columna> cols){
+            for(Columna c: cols){
+                if(c.nombre.equals(name)){
+                    return c;
+                
+                }
+                
+            }
+            return null;
         }
 
 	@Override
@@ -82,7 +96,137 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
                 return name;
 	}
+	@Override
+	public Object visitCreateTableStmt(SQLParser.CreateTableStmtContext ctx) {
+            DBMS.currentDB="test";
+            Tabla t1= new Tabla(); //Utilizamos el constructor vacio para dejar inicializada la variable
+            this.tableCreate = t1;
+            String name = ctx.tableName().getText();
+            //Verificamos si hay una DB en uso
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DB para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }
+            else{
+                //Buscamos si la tabla ya existe en la metaData     
+                DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+                for(TablaMetaData t:d.tablas){
+                    if(t.nombre.equals(name)){
+                       Frame.jTextArea2.setText("ERROR: Ya existe la tabla: "+name);
+                       return "ERROR";                       
+                    
+                    }
+                }
+                //Guardamos las columnas
+                ArrayList<Columna> cols = new ArrayList<Columna>();
+                for(ParseTree n: ctx.columnDecl()){
+                    Columna c = (Columna) visit(n);
+                    cols.add(c);
+                }
+                //Guardamos las columnas para constraints
+                this.colsCreate=cols;
+                // Si hay constraints las agregamos
+                int test = ctx.colConstraint().size();
+                ArrayList<Constraint> cons = new ArrayList<Constraint>();
+                if(test!=0){
+                   for(ParseTree n: ctx.colConstraint()){
+                       Object c = visit(n);
+                       if(!(c instanceof Constraint)){
+                           return "ERROR";
+                       
+                       }
+                       else{
+                           Constraint con =(Constraint)c;
+                           cons.add(con);
+                       }
+                       
+                   } 
+                    //Creamos la tabla y la serializamos 
+                    t1 = new Tabla(name,cols,cons);
+                    Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
+                    return t1;                    
 
+                }
+                else{
+                    //Creamos la tabla y la serializamos 
+                    t1 = new Tabla(name,cols);
+                    Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
+                    return t1;
+
+
+                } 
+                
+              
+            }
+	}
+
+	@Override
+	public Object visitColConstraint(SQLParser.ColConstraintContext ctx) {
+            
+            //Revisamos el tipo de constraint
+            if(ctx.PRIMARY()!=null){ //Si es Primary key
+                String name = ctx.pkNombre().getText();
+                //Revisando que existan los nombre de las columnas
+                ArrayList<Columna> pkCols = new ArrayList<Columna>();
+                for(ParseTree n:ctx.ID()){
+                    String text = n.getText();
+                    Columna encontrada = findCol(text,colsCreate);
+                    
+                    if(encontrada==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla"+tableCreate.name);
+                        return "ERROR";
+                    }
+                    else{
+                        pkCols.add(encontrada);
+                    
+                    }
+                }
+                //Creamos constraint
+                Constraint c = new Constraint(name,Constraint.PK,pkCols,this.tableCreate);
+                return c;
+                
+            }
+            else if(ctx.FOREIGN()!=null){
+            
+            
+            }
+            
+            else if(ctx.CHECK()!=null){
+            
+            
+            }
+            return "ERROR";
+	}        
+	@Override
+	public Object visitColumnDecl(SQLParser.ColumnDeclContext ctx) {
+            //Creamos la columan dependiendo del tipo
+            String name = ctx.colName().getText();
+            int colType = 0;
+            Columna c = new Columna(null,0,0);
+            if(ctx.tipo().CHAR()!=null){
+                colType = Columna.CHAR_TYPE;
+                int size = Integer.parseInt(ctx.tipo().NUM().getText());
+                c = new Columna(name,colType,size);
+            }
+            else if(ctx.tipo().INT()!=null){
+                colType = Columna.INT_TYPE;
+                c = new Columna(name,colType);
+            
+            }
+            else if(ctx.tipo().FLOAT()!=null){
+                colType =Columna.FLOAT_TYPE;
+                c = new Columna(name,colType);
+            }
+            else if(ctx.tipo().DATE()!=null){
+                colType = Columna.DATE_TYPE;
+                c = new Columna(name,colType);
+            
+            }
+            return c;
+            
+	}       
+        
 	@Override
 	public Object visitDmlQuery(SQLParser.DmlQueryContext ctx) {
 		// TODO Auto-generated method stub
@@ -233,11 +377,6 @@ public class Loader extends SQLBaseVisitor<Object>{
 		return super.visitOrderTerm(ctx);
 	}
 
-	@Override
-	public Object visitColConstraint(SQLParser.ColConstraintContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitColConstraint(ctx);
-	}
 
 	@Override
 	public Object visitSelectList(SQLParser.SelectListContext ctx) {
@@ -287,11 +426,7 @@ public class Loader extends SQLBaseVisitor<Object>{
 		return super.visitPkNombre(ctx);
 	}
 
-	@Override
-	public Object visitCreateTableStmt(SQLParser.CreateTableStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitCreateTableStmt(ctx);
-	}
+
 
 	@Override
 	public Object visitSelectStmt(SQLParser.SelectStmtContext ctx) {
@@ -330,11 +465,7 @@ public class Loader extends SQLBaseVisitor<Object>{
 		return super.visitTipo(ctx);
 	}
 
-	@Override
-	public Object visitColumnDecl(SQLParser.ColumnDeclContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitColumnDecl(ctx);
-	}
+
 
 	@Override
 	public Object visitNewDbName(SQLParser.NewDbNameContext ctx) {

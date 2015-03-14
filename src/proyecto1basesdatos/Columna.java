@@ -5,11 +5,14 @@
  */
 package proyecto1basesdatos;
 
+import java.io.Serializable;
+
 /**
  *
  * @author pablo
  */
-public class Columna {
+public class Columna implements Serializable {
+    private static final long serialVersionUID = 6529685098267757697L;
     /*Declaramos como estaticos los posibles tipos de las columnas*/
     static final int INT_TYPE =0;
     static final int FLOAT_TYPE =1;
@@ -21,11 +24,37 @@ public class Columna {
     String nombre; //Nombre de la columna
     
     public Columna(String nombre,int tipo ){
-    
+        this.nombre = nombre;
+        this.tipo = tipo;
+        size = -1;
     
     }
     public Columna(String nombre,int tipo,int size ){
-    
+        this.nombre = nombre;
+        this.tipo = tipo;
+        this.size = size;
     
     }    
+    
+    public String toString(){
+        String t="";
+        switch(tipo){
+            case 0:
+                t="INT";
+                break;
+            case 1:
+                t="FLOAT";
+                break;
+            case 2:
+                t="CHAR("+size+")";
+                break;
+            case 3:
+                t="DATE";
+                break;
+        }
+        
+        String s = nombre+"Type: "+t+",";
+        return s;
+    
+    }
 }
