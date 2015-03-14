@@ -1,0 +1,9 @@
+CREATE TABLE asignacion
+(
+  idserial INT,
+  estudianteid INT,
+  universidadid INT,
+  materia CHAR(255),
+  nota INT,
+  CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial)
+)

@@ -43,6 +43,8 @@ ASC: 'ASC';
 DESC: 'DESC';
 fragment LETTER: ('a'..'z'|'A'..'Z') ;
 fragment DIGIT : '0'..'9' ;
+
+WS : [ \t\r\n\f]+  ->channel(HIDDEN);
 DATE_VAL: DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ;
 NUM: DIGIT(DIGIT)* ;
 ID : LETTER( LETTER | DIGIT)* ;
@@ -74,11 +76,11 @@ dropDbStmt: DROP DATABASE ID;
 showDbStmt: SHOW DATABASES;
 useDbStmt: USE DATABASE ID;
 
-createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) (   (colConstraint)*)?   ')';  //Revisar Constraints: por tabla
+createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) (   (','colConstraint)*)?   ')';  //Revisar Constraints: por tabla
 	tableName: ID;
 	
 	columnDecl: colName tipo  ;
-		tipo: INT|FLOAT|DATE|CHAR; //Formato DATE: ‘AAAA-MM-DD’
+		tipo: INT|FLOAT|DATE|CHAR'('NUM')'; //Formato DATE: ï¿½AAAA-MM-DDï¿½
 		colName: ID;
 		
 		colConstraint: CONSTRAINT pkNombre PRIMARY KEY '(' (ID)+')'

@@ -27,6 +27,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import javax.swing.text.BadLocationException;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Frame extends javax.swing.JFrame {
 
@@ -40,10 +44,13 @@ public class Frame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextArea jTextArea2;
+    public static javax.swing.JTextArea jTextArea2;
     // End of variables declaration//GEN-END:variables
+    public boolean error;
+    public DBMS dbms;
     public Frame() {
         initComponents();
+        this.dbms= new DBMS();
     }
 
     /**
@@ -91,9 +98,7 @@ public class Frame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane2)
-                    .addComponent(jScrollPane1))
+                .addComponent(jScrollPane2)
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addGap(153, 153, 153)
@@ -103,13 +108,17 @@ public class Frame extends javax.swing.JFrame {
                 .addGap(231, 231, 231)
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(149, 149, 149))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 367, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 367, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -123,12 +132,31 @@ public class Frame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        try {
-            DB db = new DB("test");
-        } catch (Exception ex) {
-            Logger.getLogger(Frame.class.getName()).log(Level.SEVERE, null, ex);
+        String src = jTextArea1.getText();
+        src+=" ";
+        jTextArea2.setText("");
+        this.error=false;
+        try{
+            SQLLexer lexer  = new SQLLexer(new ANTLRInputStream(src));
+            //lexer.removeErrorListeners();
+            //lexer.addErrorListener(new ThrowingErrorListener(this));        
+            TokenStream tokenStream = new CommonTokenStream(lexer);
+            
+            SQLParser parser = new SQLParser(tokenStream);
+            parser.removeErrorListeners();
+            parser.addErrorListener(new ThrowingErrorListener(this));
+            parser.query().inspect(parser);
+            if (!error) {
+                dbms.executeQuery(src);
+                System.out.print("  ");
+            }            
         }
         
+        catch(Exception e){
+            jTextArea2.setText(e.getMessage());
+            e.printStackTrace();
+                   
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     
