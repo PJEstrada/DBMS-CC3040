@@ -1,5 +1,8 @@
 package proyecto1basesdatos;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import javax.swing.JTextArea;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -295,8 +298,41 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitShowDbStmt(SQLParser.ShowDbStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitShowDbStmt(ctx);
+            //1. Especificar el directorio donde se debe ir a buscar el archivo de metadata
+            String currentDir = System.getProperty("user.dir");
+            System.out.println(currentDir);
+            //2. Abrir el archivo de metadata
+            File directorio  = new File(currentDir+"/DBMS/master.dat");
+            BufferedReader reader = null;
+            String [] nombres = null;
+            int indiceDosPuntos = 0;
+            ArrayList<String> nombresDB = new ArrayList<String>();
+            //3. Leer el archivo de metadata 
+            try{
+                reader = new BufferedReader(new FileReader(directorio));
+                String text = null;
+                while ((text = reader.readLine()) != null) {
+                    nombres = text.split(" ");
+                    indiceDosPuntos = java.util.Arrays.asList(nombres).indexOf("Datos:");
+                    if(indiceDosPuntos>0)
+                    {
+                        //4. Pasar cada dato referente al nombre de las bases de datos creadas
+                        nombresDB.add(nombres[indiceDosPuntos+1]);
+                    }
+                    indiceDosPuntos = 0;
+                    
+                }
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            //5. Mostrar el string creado
+            for(int i = 0; i< nombresDB.size(); i++)
+            {
+                System.out.println(nombresDB.get(i));
+            }
+            return super.visitShowDbStmt(ctx);
 	}
 
 	@Override
@@ -343,8 +379,55 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitUseDbStmt(SQLParser.UseDbStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitUseDbStmt(ctx);
+            //1. Especificar el directorio donde se debe ir a buscar el archivo de metadata
+            String currentDir = System.getProperty("user.dir");
+            System.out.println(currentDir);
+            //2. Abrir el archivo de metadata
+            File directorio  = new File(currentDir+"/DBMS/master.dat");
+            BufferedReader reader = null;
+            String [] nombres = null;
+            int indiceDosPuntos = 0;
+            ArrayList<String> nombresDB = new ArrayList<String>();
+            //3. Leer el archivo de metadata 
+            try{
+                reader = new BufferedReader(new FileReader(directorio));
+                String text = null;
+                while ((text = reader.readLine()) != null) {
+                    nombres = text.split(" ");
+                    indiceDosPuntos = java.util.Arrays.asList(nombres).indexOf("Datos:");
+                    if(indiceDosPuntos>0)
+                    {
+                        //4. Pasar cada dato referente al nombre de las bases de datos creadas
+                        nombresDB.add(nombres[indiceDosPuntos+1]);
+                    }
+                    indiceDosPuntos = 0;
+                    
+                }
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            //5. Mostrar el string creado
+            String dbname = ctx.ID().getText();
+            boolean existsDb = false;
+            for(int i = 0; i< nombresDB.size(); i++)
+            {
+               if(dbname.equals(nombresDB.get(i)))
+               {
+                   existsDb = true;
+                   break;
+               }
+            }
+            if(existsDb)
+            {
+                System.out.println("Si existe la base de datos");
+            }
+            else
+            {
+                System.out.println("No existe la base de datos");
+            }
+            return super.visitUseDbStmt(ctx);
 	}
 
 	@Override
