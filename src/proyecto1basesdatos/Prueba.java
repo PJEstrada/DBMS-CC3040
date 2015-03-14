@@ -11,7 +11,7 @@ package proyecto1basesdatos;
  * @author Al
  */
 public class Prueba {
-    
+    //comment
     //Agregue lo que faltaba
     
 }

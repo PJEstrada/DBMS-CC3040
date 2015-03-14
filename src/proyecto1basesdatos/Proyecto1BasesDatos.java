@@ -10,7 +10,7 @@ package proyecto1basesdatos;
  * @author pablo
  */
 public class Proyecto1BasesDatos {
-
+    //comment
     /**
      * @param args the command line arguments
      */
