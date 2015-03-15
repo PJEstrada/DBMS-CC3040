@@ -342,7 +342,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                 tempFila.add(nombresDB.get(i));
                 filas.add(tempFila);
             }
-           Resultados he = new Resultados(tituloColumnas, filas);
+           Resultados results = new Resultados(tituloColumnas, filas);
             return super.visitShowDbStmt(ctx);
 	}
 
@@ -432,11 +432,13 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             if(existsDb)
             {
+                DBMS.currentDB = dbname;
                 System.out.println("Si existe la base de datos");
             }
             else
             {
-                System.out.println("No existe la base de datos");
+                Frame.jTextArea2.setText("ERROR: No existe la base de datos: "+dbname);
+                return "ERROR";
             }
             return super.visitUseDbStmt(ctx);
 	}
