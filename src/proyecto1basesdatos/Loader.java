@@ -332,6 +332,17 @@ public class Loader extends SQLBaseVisitor<Object>{
             {
                 System.out.println(nombresDB.get(i));
             }
+            /*Prueba para mostrar las bases de datos*/
+            ArrayList<String> tituloColumnas = new ArrayList<String>();
+            tituloColumnas.add("Databases: ");
+            ArrayList<ArrayList<String>> filas = new ArrayList<ArrayList<String>>();
+            for(int i = 0; i< nombresDB.size(); i++)
+            {
+                ArrayList<String> tempFila = new ArrayList<String>();
+                tempFila.add(nombresDB.get(i));
+                filas.add(tempFila);
+            }
+           Resultados he = new Resultados(tituloColumnas, filas);
             return super.visitShowDbStmt(ctx);
 	}
 
