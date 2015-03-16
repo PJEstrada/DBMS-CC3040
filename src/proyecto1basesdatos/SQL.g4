@@ -80,12 +80,14 @@ createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) ( 
 	tableName: ID;
 	
 	columnDecl: colName tipo  ;
-		tipo: INT|FLOAT|DATE|CHAR'('NUM')'; //Formato DATE: ï¿½AAAA-MM-DDï¿½
+		tipo: INT|FLOAT|DATE|CHAR'('NUM')'; //Formato DATE: ‘AAAA-MM-DD’
 		colName: ID;
 		
-		colConstraint: CONSTRAINT pkNombre PRIMARY KEY '(' (ID)+')'
-						|fkNombre FOREIGN KEY '(' (ID)+ ')' REFERENCES idTabla '('(ID)+')' 
-						|chNombre CHECK '(' expression ')' ;
+		colConstraint: CONSTRAINT (pkNombre PRIMARY KEY '(' (localids(','localids)*)')'
+						|fkNombre FOREIGN KEY '(' (localids (','localids)* ) ')' REFERENCES idTabla '('(refids(','refids)*)')' 
+						|chNombre CHECK '(' expression ')' );
+			localids: ID;
+			refids:ID;
 			chNombre: ID;				
 			idTabla: ID ;
 			fkNombre:ID;

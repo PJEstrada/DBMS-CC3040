@@ -1,6 +1,0 @@
-Base de Datos: test
-Numero Tablas: 1
-
-Tabla: asignacion 
-Cantidad de Registros: 0
-idserialType: INT,  estudianteidType: INT,  universidadidType: INT,  materiaType: CHAR(255),  notaType: INT,  CONSTRAINT: pkeyAsignacion PKEY (idserial,  )   

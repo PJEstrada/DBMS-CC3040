@@ -22,6 +22,7 @@ public class Loader extends SQLBaseVisitor<Object>{
         DBMS  dbms;
         ArrayList<Columna> colsCreate; // Almacena las columnas que se crean en CREATE TABLE para poder verificarlas en los metodos de constraints
         Tabla tableCreate; 
+        String createTableName;
         public Loader(DBMS dbms){
             this.dbms = dbms;
         
@@ -101,13 +102,13 @@ public class Loader extends SQLBaseVisitor<Object>{
 	}
 	@Override
 	public Object visitCreateTableStmt(SQLParser.CreateTableStmtContext ctx) {
-            DBMS.currentDB="test";
             Tabla t1= new Tabla(); //Utilizamos el constructor vacio para dejar inicializada la variable
             this.tableCreate = t1;
             String name = ctx.tableName().getText();
+            t1.name=name;
             //Verificamos si hay una DB en uso
             if(DBMS.currentDB==null){
-                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DB para utilizar una base de datos existente.");
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
                 return "ERROR";
             
             }
@@ -172,12 +173,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 String name = ctx.pkNombre().getText();
                 //Revisando que existan los nombre de las columnas
                 ArrayList<Columna> pkCols = new ArrayList<Columna>();
-                for(ParseTree n:ctx.ID()){
+                for(ParseTree n:ctx.localids()){
                     String text = n.getText();
                     Columna encontrada = findCol(text,colsCreate);
                     
                     if(encontrada==null){
-                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla"+tableCreate.name);
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla: "+tableCreate.name);
                         return "ERROR";
                     }
                     else{
@@ -186,12 +187,80 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 }
                 //Creamos constraint
-                Constraint c = new Constraint(name,Constraint.PK,pkCols,this.tableCreate);
+                Constraint c = new Constraint(name,Constraint.PK,pkCols);
                 return c;
                 
             }
-            else if(ctx.FOREIGN()!=null){
-            
+            else if(ctx.FOREIGN()!=null){ // Si es foreign key
+                String name = ctx.fkNombre().getText();
+                //Revisando que existan los nombre de las columnas en la tabla local
+                ArrayList<Columna> localCols = new ArrayList<Columna>();
+                for(ParseTree n:ctx.localids()){
+                    String text = n.getText();
+                    Columna encontrada = findCol(text,colsCreate);
+                    
+                    if(encontrada==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla: "+tableCreate.name);
+                        return "ERROR";
+                    }
+                    else{
+                        localCols.add(encontrada);
+                    
+                    }
+                }
+                //Obteniendo la tabla que referencia
+                String refTable = ctx.idTabla().getText();
+                DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
+                TablaMetaData t = bd.findTable(refTable);
+                if(t==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        return "ERROR";                   
+                }
+                //Si encontramos la tabla procedemos a buscar las columnas
+                else{
+                    ArrayList<Columna> fkCols = new ArrayList<Columna>();
+                    ArrayList<Columna> cols = Tabla.loadColums(refTable);
+                    for(ParseTree n:ctx.refids()){
+                        String text = n.getText();
+                        //Buscamos las columnas de la tabla
+                        
+                        if(cols==null){
+                            Frame.jTextArea2.setText("ERROR: No se encuentra archivo de columnas para la tabla: "+refTable);
+                            return "ERROR";                            
+                        }
+                        Columna encontrada = findCol(text,cols);
+
+                        if(encontrada==null){
+                            Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla: "+tableCreate.name);
+                            return "ERROR";
+                        }
+                        else{
+                            fkCols.add(encontrada);
+
+                        }
+                    }
+                    
+                    //Una vez obtenidos los dos arreglos de columnas verificamos que tengan el mismo tamaño
+                    if(fkCols.size()!=localCols.size()){
+                        Frame.jTextArea2.setText("ERROR: El numero de columnas locales y remotas en la foregin key debe ser el mismo");
+                        return "ERROR";
+                    }
+                    //Si los arreglos son iguales verificamos que tengan los mismos tipo
+                    for(int i =0;i<localCols.size();i++){
+                        Columna local = localCols.get(i);
+                        Columna foreign = fkCols.get(i);
+                        if(local.tipo!=foreign.tipo){
+                            Frame.jTextArea2.setText("ERROR: las columnas: '"+local.nombre+", "+foreign.nombre+"' Deben tener el mismo tipo");
+                            return "ERROR";                       
+                        
+                        }
+                    }
+                    //Si todas las columnas tienen los mismo tipos, procedemos a crear la constraint
+                    Constraint c = new Constraint(name,Constraint.FK,localCols,fkCols,refTable);
+                    return c;
+                
+                }
+                
             
             }
             

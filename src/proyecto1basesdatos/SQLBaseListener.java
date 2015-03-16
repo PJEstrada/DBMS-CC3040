@@ -1,5 +1,6 @@
 // Generated from SQL.g4 by ANTLR 4.4
 package proyecto1basesdatos;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -23,6 +24,18 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitTipo(@NotNull SQLParser.TipoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRefids(@NotNull SQLParser.RefidsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRefids(@NotNull SQLParser.RefidsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -179,6 +192,18 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitColName(@NotNull SQLParser.ColNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLocalids(@NotNull SQLParser.LocalidsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLocalids(@NotNull SQLParser.LocalidsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

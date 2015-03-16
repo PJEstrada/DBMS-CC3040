@@ -19,28 +19,40 @@ public class Constraint implements Serializable {
     final static int FK=1; // tipo foreign key
     final static int CHECK=2; // tipo Check
     
-    Tabla tabla; // Tabla a la que pertenece la constraint
     String nombre;
     int tipo;
     ArrayList<Columna> colsPkeys;
+    
     ArrayList<Columna> localFkeys;
     ArrayList<Columna> refKeys;
+    String foreignTable;
     
     
     //Constructor para primary key
-    public Constraint(String nombre, int tipo, ArrayList<Columna> columnas_pk,Tabla t){
+    public Constraint(String nombre, int tipo, ArrayList<Columna> columnas_pk){
         this.nombre = nombre;
         this.tipo = tipo;
         colsPkeys = columnas_pk;
         
     
     }
+    //Constructor para foreign Key
+    public Constraint(String nombre, int tipo, ArrayList<Columna> locales,ArrayList<Columna> foreign,String tableReference){
+        this.nombre = nombre;
+        this.tipo = tipo;
+        this.localFkeys = locales;
+        this.refKeys=foreign;
+        this.foreignTable=tableReference;
+    
+    }    
+    
+    
     public String toString(){
         String s = "CONSTRAINT: "+nombre+" ";
         String t="";
         switch(tipo){
             case 0:
-                t="PKEY";
+                t="P_KEY";
                 s+=t+" ( ";
                 for(Columna c:colsPkeys){
                     s+=c.nombre+", ";
@@ -49,10 +61,23 @@ public class Constraint implements Serializable {
                 
                 break;
             case 1:
-                t="FKEY";
+                t="F_KEY (";
+                s+=t;
+                for(Columna c:localFkeys){
+                    s+=c.nombre+", ";
+                }
+                s+=") REFERENCES"+this.foreignTable+" (";
+                
+                for(Columna c:this.refKeys){
+                    s+=c.nombre+", ";
+                }    
+                s+=") ";
                 break;
+             
+                
             case 2:
                 t="CHECK";
+                break;
         }
         return s;
     

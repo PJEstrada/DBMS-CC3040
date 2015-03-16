@@ -7,3 +7,10 @@ CREATE TABLE asignacion
   nota INT,
   CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial)
 )
+
+CREATE TABLE A
+(
+  idSerial INT,
+  estudiante INT,
+  CONSTRAINT pkeyAsignacion FOREIGN KEY (idSerial,estudiante) REFERENCES asignacion (idserial,estudianteid)
+)

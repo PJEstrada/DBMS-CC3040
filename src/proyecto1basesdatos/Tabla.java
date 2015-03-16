@@ -6,9 +6,12 @@
 package proyecto1basesdatos;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
@@ -16,6 +19,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static proyecto1basesdatos.DBMS.metaData;
 
 /**
  *
@@ -56,7 +60,7 @@ public class Tabla implements Serializable {
     }
     
     public void guardarTabla(){
-        //Serializamos
+        //Serializamos la tabla
         String currentDir = System.getProperty("user.dir");
         FileOutputStream fileOut;           
         try {
@@ -67,7 +71,51 @@ public class Tabla implements Serializable {
         } catch (Exception ex) {
             Logger.getLogger(Tabla.class.getName()).log(Level.SEVERE, null, ex);
         }
+        //Serializamos columnas por separado       
+        try {
+            fileOut = new FileOutputStream(currentDir+"/DBMS/"+DBMS.currentDB+"/"+name+"_cols.ser");
+            ObjectOutputStream out;                 
+            out = new ObjectOutputStream(fileOut);
+            out.writeObject(this.columnas);           
+        } catch (Exception ex) {
+            Logger.getLogger(Tabla.class.getName()).log(Level.SEVERE, null, ex);
+        }  
+        //Serializamos constraints por separado       
+        try {
+            fileOut = new FileOutputStream(currentDir+"/DBMS/"+DBMS.currentDB+"/"+name+"_constraints.ser");
+            ObjectOutputStream out;                 
+            out = new ObjectOutputStream(fileOut);
+            out.writeObject(this.constraints);           
+        } catch (Exception ex) {
+            Logger.getLogger(Tabla.class.getName()).log(Level.SEVERE, null, ex);
+        }        
+    }
     
+    public static ArrayList<Columna> loadColums(String nombreTabla){
+                
+        String currentDir = System.getProperty("user.dir");
+        File f = new File(currentDir+"/DBMS/"+DBMS.currentDB+"/"+nombreTabla+"_cols.ser");
+        if(f.exists() && !f.isDirectory()) {
+            //Deserializamos
+            try
+            {
+               FileInputStream fileIn = new FileInputStream(currentDir+"/DBMS/"+DBMS.currentDB+"/"+nombreTabla+"_cols.ser");
+               ObjectInputStream in = new ObjectInputStream(fileIn);
+               ArrayList<Columna> ret = (ArrayList<Columna>) in.readObject();
+               in.close();
+               fileIn.close(); 
+               return ret;
+            }catch(Exception i)
+            {
+               i.printStackTrace();
+               return null;         
+            }            
+        
+        }  
+        else{
+            return null;
+        }
+
     }
     public Tabla(String n, ArrayList<Columna> cols, ArrayList<Constraint> cons){
     

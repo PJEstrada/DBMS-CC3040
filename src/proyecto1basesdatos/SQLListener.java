@@ -1,5 +1,6 @@
 // Generated from SQL.g4 by ANTLR 4.4
 package proyecto1basesdatos;
+
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -18,6 +19,16 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitTipo(@NotNull SQLParser.TipoContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#refids}.
+	 * @param ctx the parse tree
+	 */
+	void enterRefids(@NotNull SQLParser.RefidsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#refids}.
+	 * @param ctx the parse tree
+	 */
+	void exitRefids(@NotNull SQLParser.RefidsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#pkNombre}.
 	 * @param ctx the parse tree
@@ -148,6 +159,16 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitColName(@NotNull SQLParser.ColNameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SQLParser#localids}.
+	 * @param ctx the parse tree
+	 */
+	void enterLocalids(@NotNull SQLParser.LocalidsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#localids}.
+	 * @param ctx the parse tree
+	 */
+	void exitLocalids(@NotNull SQLParser.LocalidsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SQLParser#query}.
 	 * @param ctx the parse tree

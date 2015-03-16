@@ -53,7 +53,7 @@ public class Columna implements Serializable {
                 break;
         }
         
-        String s = nombre+"Type: "+t+",";
+        String s = nombre+"  Type: "+t+",";
         return s;
     
     }

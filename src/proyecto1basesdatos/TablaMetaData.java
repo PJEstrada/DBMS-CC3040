@@ -33,10 +33,12 @@ public class TablaMetaData implements Serializable{
         for(String s1: columnas){
             s+= s1+"  ";
         }
+        s+="\n\r";
         for(String s2:constraints){
         
             s+=s2+"  ";
         }
+        s+="\n\r";
         return s;
     }
     

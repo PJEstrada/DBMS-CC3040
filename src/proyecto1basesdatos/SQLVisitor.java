@@ -1,5 +1,6 @@
 // Generated from SQL.g4 by ANTLR 4.4
 package proyecto1basesdatos;
+
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -17,6 +18,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitTipo(@NotNull SQLParser.TipoContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#refids}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRefids(@NotNull SQLParser.RefidsContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#pkNombre}.
 	 * @param ctx the parse tree
@@ -95,6 +102,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitColName(@NotNull SQLParser.ColNameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SQLParser#localids}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLocalids(@NotNull SQLParser.LocalidsContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SQLParser#query}.
 	 * @param ctx the parse tree

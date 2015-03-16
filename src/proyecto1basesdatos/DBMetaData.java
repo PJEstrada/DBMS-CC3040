@@ -59,5 +59,16 @@ public class DBMetaData implements Serializable {
        
     
     }
+    
+    public TablaMetaData findTable(String s){
+        for(TablaMetaData t: this.tablas){
+            if(t.nombre.equalsIgnoreCase(s)){
+                return t;
+            
+            }
+        }
+        return null;
+    
+    }
 
 }
