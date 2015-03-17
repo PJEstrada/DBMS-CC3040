@@ -22,6 +22,7 @@ public class Columna implements Serializable {
     int tipo; //Tipo de la columna, cualquiera de los mencionados arriba
     int size; //Solo se utiliza para los CHAR_TYPE. Almacen es tamanio del CHAR ingresado entre parentesis.
     String nombre; //Nombre de la columna
+    String tabla; //Nombre de la tabla
     
     public Columna(String nombre,int tipo ){
         this.nombre = nombre;

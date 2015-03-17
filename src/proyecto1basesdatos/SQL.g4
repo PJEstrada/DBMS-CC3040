@@ -25,8 +25,6 @@ COLUMNS: 'COLUMNS';
 FROM:'FROM';
 ADD:'ADD';
 COLUMN:'COLUMNS';
-RENAME:'RENAME';
-TO:'TO';
 AND: 'AND';
 OR: 'OR';
 NOT: 'NOT';
@@ -45,7 +43,7 @@ fragment LETTER: ('a'..'z'|'A'..'Z') ;
 fragment DIGIT : '0'..'9' ;
 
 WS : [ \t\r\n\f]+  ->channel(HIDDEN);
-DATE_VAL: DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT ;
+DATE_VAL: '\''DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT'\'' ;
 NUM: DIGIT(DIGIT)* ;
 ID : LETTER( LETTER | DIGIT)* ;
 CHAR_VAL: '\'' ~('\r' | '\n' | '"')* '\'' ;
@@ -94,7 +92,7 @@ createTableStmt: CREATE TABLE tableName '('    (columnDecl (','columnDecl)* ) ( 
 			pkNombre: ID;
 			 //PENDIENTE
 
-alterTableStmt: ALTER TABLE alterName RENAME TO newName #renameAlter | ALTER TABLE ID (accion | accion(','accion)+  ) #accionAlter ;
+alterTableStmt: ALTER TABLE alterName RENAMETO newName #renameAlter | ALTER TABLE ID (accion | accion(','accion)+  ) #accionAlter ;
 	alterName: ID;
 	newName: ID;
 	accion: ADD COLUMN columnName tipo CONSTRAINT colConstraint|

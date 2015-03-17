@@ -3,7 +3,9 @@ package proyecto1basesdatos;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.swing.JTextArea;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -23,6 +25,8 @@ public class Loader extends SQLBaseVisitor<Object>{
         ArrayList<Columna> colsCreate; // Almacena las columnas que se crean en CREATE TABLE para poder verificarlas en los metodos de constraints
         Tabla tableCreate; 
         String createTableName;
+        ArrayList<Columna> availableCols;
+        ArrayList<Constraint> availableCons;
         public Loader(DBMS dbms){
             this.dbms = dbms;
         
@@ -34,7 +38,7 @@ public class Loader extends SQLBaseVisitor<Object>{
         //Metodo para encontrar una columna dado un string y una arreglo de columnas. Se utiliza para verificar el primary key de una tabla.
         public Columna findCol(String name, ArrayList<Columna> cols){
             for(Columna c: cols){
-                if(c.nombre.equals(name)){
+                if(c.nombre.equalsIgnoreCase(name)){
                     return c;
                 
                 }
@@ -42,11 +46,37 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             return null;
         }
-
+        //Metodo para encontrar primary key de una lista de constraints
+        public boolean findPk(ArrayList<Constraint> cons){
+            for(Constraint c:cons){
+                if(c.tipo==Constraint.PK){
+                    return true;
+                }
+            
+            }
+            return false;
+        
+        }
 	@Override
 	public Object visitExpression(SQLParser.ExpressionContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitExpression(ctx);
+            if(ctx.children.size()==1){
+                return visit(ctx.andexpr());
+            
+            }
+            else{
+                Object l =  visit(ctx.expression());
+                Object r=  visit(ctx.andexpr());
+                if((l instanceof Expression)&&(r instanceof Expression)){
+                    Expression l1 = (Expression)l;
+                    Expression r1 = (Expression) r;
+                    OrExpression e = new OrExpression(l1,r1);
+                    return e;
+                }
+                else{
+                    return "ERROR";
+                }
+            
+            }
 	}
 
 
@@ -64,11 +94,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             
 	}
 
-	@Override
-	public Object visitAccionAlter(SQLParser.AccionAlterContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitAccionAlter(ctx);
-	}
+
 	@Override
 	public Object visitDropDbStmt(SQLParser.DropDbStmtContext ctx) {
 		
@@ -102,6 +128,8 @@ public class Loader extends SQLBaseVisitor<Object>{
 	}
 	@Override
 	public Object visitCreateTableStmt(SQLParser.CreateTableStmtContext ctx) {
+            this.availableCols = new ArrayList<Columna>();
+            this.availableCons = new ArrayList<Constraint>();
             Tabla t1= new Tabla(); //Utilizamos el constructor vacio para dejar inicializada la variable
             this.tableCreate = t1;
             String name = ctx.tableName().getText();
@@ -127,12 +155,14 @@ public class Loader extends SQLBaseVisitor<Object>{
                 for(ParseTree n: ctx.columnDecl()){
                     Columna c = (Columna) visit(n);
                     cols.add(c);
+                    availableCols.add(c);
                 }
                 //Guardamos las columnas para constraints
                 this.colsCreate=cols;
                 // Si hay constraints las agregamos
                 int test = ctx.colConstraint().size();
                 ArrayList<Constraint> cons = new ArrayList<Constraint>();
+                availableCons = cons;
                 if(test!=0){
                    for(ParseTree n: ctx.colConstraint()){
                        Object c = visit(n);
@@ -171,8 +201,16 @@ public class Loader extends SQLBaseVisitor<Object>{
             //Revisamos el tipo de constraint
             if(ctx.PRIMARY()!=null){ //Si es Primary key
                 String name = ctx.pkNombre().getText();
+                //Revisamos que no exista una primary key en las constraints declaradas antes
+                boolean hay_pk = findPk(availableCons);
+                if(hay_pk){
+                        Frame.jTextArea2.setText("ERROR: No es posible declarar dos primary keys. En la tabla: "+tableCreate.name);
+                        return "ERROR";                    
+                }
                 //Revisando que existan los nombre de las columnas
                 ArrayList<Columna> pkCols = new ArrayList<Columna>();
+                
+                
                 for(ParseTree n:ctx.localids()){
                     String text = n.getText();
                     Columna encontrada = findCol(text,colsCreate);
@@ -187,7 +225,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 }
                 //Creamos constraint
-                Constraint c = new Constraint(name,Constraint.PK,pkCols);
+                Constraint c = new Constraint(name,Constraint.PK,pkCols,tableCreate.name);
                 return c;
                 
             }
@@ -256,7 +294,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                         }
                     }
                     //Si todas las columnas tienen los mismo tipos, procedemos a crear la constraint
-                    Constraint c = new Constraint(name,Constraint.FK,localCols,fkCols,refTable);
+                    Constraint c = new Constraint(name,Constraint.FK,localCols,fkCols,refTable,this.tableCreate.name);
                     return c;
                 
                 }
@@ -265,7 +303,19 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             
             else if(ctx.CHECK()!=null){
-            
+                String name= ctx.chNombre().getText();
+                //Obtenemos la expresion del CHECK
+                Object e = visit(ctx.expression());
+                String expr = ctx.expression().getText();
+                //Verificamos que no existan errores en la expresion para poder castear
+                if(! (e instanceof Expression)){
+                    return "ERROR";
+                
+                }
+                Expression e1 = (Expression)e;
+                Constraint c = new Constraint(name,Constraint.CHECK,e1,tableCreate.name,expr);
+                return c;
+                
             
             }
             return "ERROR";
@@ -325,10 +375,34 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitRenameAlter(SQLParser.RenameAlterContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitRenameAlter(ctx);
+            //Verificamos si hay una DB en uso
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }            
+            String oldName = ctx.alterName().getText();
+            String newName= ctx.newName().getText();
+            Tabla t = Tabla.loadTable(oldName);
+            if(t==null){
+                Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+oldName);
+                return "ERROR";           
+            
+            }
+            DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+            TablaMetaData tm=d.findTable(oldName);
+            tm.nombre=newName;
+            t.renameTo(newName);
+            DBMS.metaData.writeMetadata();
+            Frame.jTextArea2.setText("Tabla: "+oldName+" renombrada a : '"+newName);
+            return t;
+            
+            
 	}
-
+	@Override
+	public Object visitAccionAlter(SQLParser.AccionAlterContext ctx) {
+            return super.visitAccionAlter(ctx);
+	}
 	@Override
 	public Object visitFkNombre(SQLParser.FkNombreContext ctx) {
 		// TODO Auto-generated method stub
@@ -343,8 +417,13 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitPrimary(SQLParser.PrimaryContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitPrimary(ctx);
+            if(ctx.children.size()==1){
+                return visit(ctx.compareExpr());
+            
+            }
+            else{
+                return visit(ctx.expression());
+            }
 	}
 
 	@Override
@@ -423,8 +502,23 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitAndexpr(SQLParser.AndexprContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitAndexpr(ctx);
+            if(ctx.children.size()==1){
+                return visit(ctx.factor());
+            
+            }
+            else{
+                Object l =  visit(ctx.andexpr());
+                Object r=  visit(ctx.factor());
+                if((l instanceof Expression)&&(r instanceof Expression)){
+                    Expression l1 = (Expression)l;
+                    Expression r1 = (Expression) r;
+                    AndExpression e = new AndExpression(l1,r1);
+                    return e;
+                }
+                else{
+                    return "ERROR";
+                }
+            }
 	}
 
 	@Override
@@ -557,8 +651,65 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitCompareExpr(SQLParser.CompareExprContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitCompareExpr(ctx);
+            String op = ctx.rel_op().getText();
+            if(!op.equals("=")&&!op.equals("<>")&&!op.equals(">")&&!op.equals("<")&&!op.equals(">=")&&!op.equals("<=")){
+                Frame.jTextArea2.setText("Error, operando invalido en expresion: "+op);
+                return "ERROR";
+            }
+            else{
+                Object l = visit(ctx.term(0));
+                Object r = visit(ctx.term(1));
+                if((l instanceof Term)&& (r instanceof Term)){
+                    Term l1 = (Term) l;
+                    Term r1 = (Term)r;
+                
+                
+
+                    //Verificamos los tipos
+                    if(l1.type == Term.INT_TYPE && r1.type== Term.CHAR_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'INT' , 'CHAR'");
+                        return "ERROR";                   
+                    }
+                    if(l1.type == Term.INT_TYPE && r1.type == Term.DATE_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'INT' , 'Date'");
+                        return "ERROR";                   
+                    }                
+                    if(l1.type == Term.CHAR_TYPE && r1.type == Term.INT_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'CHAR' , 'INT'");
+                        return "ERROR";                   
+                    }
+                    if(l1.type == Term.DATE_TYPE && r1.type == Term.INT_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'Date' , 'INT'");
+                        return "ERROR";                   
+                    }                 
+                    if(l1.type == Term.FLOAT_TYPE && r1.type == Term.CHAR_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'INT' , 'CHAR'");
+                        return "ERROR";                   
+                    }
+                    if(l1.type == Term.FLOAT_TYPE && r1.type== Term.DATE_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'INT' , 'Date'");
+                        return "ERROR";                   
+                    }                
+                    if(l1.type == Term.CHAR_TYPE && r1.type == Term.FLOAT_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'CHAR' , 'INT'");
+                        return "ERROR";                   
+                    }
+                    if(l1.type == Term.DATE_TYPE && r1.type == Term.FLOAT_TYPE ){
+                        Frame.jTextArea2.setText("Error, Tipos invalidos en comparacion: 'Date' , 'INT'");
+                        return "ERROR";                   
+                    }               
+
+                    CompareExpression e = new CompareExpression(l1,r1,op);
+                    return e;
+                    
+                }
+                 else{
+                    return "ERROR";
+                }
+            }
+
+            
+            
 	}
 
 	@Override
@@ -601,8 +752,21 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitFactor(SQLParser.FactorContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitFactor(ctx);
+            if(ctx.children.size()== 1){
+                return visit(ctx.primary());
+            
+            }
+            else{
+                Object l =  visit(ctx.primary());
+                if((l instanceof Expression)){
+                    Expression l1 = (Expression)l;
+                    NotExpression e = new NotExpression(l1);
+                    return e;
+                }
+                else{
+                    return "ERROR";
+                }
+            }
 	}
 
 
@@ -620,8 +784,48 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitTerm(SQLParser.TermContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitTerm(ctx);
+            //Si es un int
+            if(ctx.NUM()!=null){
+                int a = Integer.parseInt(ctx.NUM().getText());
+                Term t = new Term(a);
+                return t;
+            }
+            else if(ctx.CHAR_VAL()!=null){
+                String s = ctx.CHAR_VAL().getText();
+                Term t = new Term(s);
+                return t;
+            }
+            else if(ctx.FLOAT_VAL()!=null){
+                float f = Float.parseFloat(ctx.FLOAT_VAL().getText());
+                Term t = new Term(f);
+                return t;
+            }
+            else if(ctx.DATE_VAL()!=null){
+                String date = ctx.DATE_VAL().getText();
+                date= date.substring(1);
+                date = date.substring(0,date.length()-1);
+                try{
+                    LocalDate d = LocalDate.parse(date);
+                    Term t = new Term(d);
+                    return t;
+                }
+                catch(Exception e){
+                     Frame.jTextArea2.setText("Error: Tipo Invalido de Fecha: "+ctx.DATE_VAL().getText());
+                    return "ERROR";                      
+                }
+            }
+            //Si es columna
+            else{
+                String colName = ctx.column().getText();
+                //Buscamos la columna
+                Columna c = this.findCol(colName, this.availableCols);
+                if(c==null){
+                    Frame.jTextArea2.setText("Error: No se encuentra la columna: "+colName);
+                    return "ERROR";                     
+                }
+                Term t = new Term(c);
+                return t;
+            }
 	}
 
 	@Override

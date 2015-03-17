@@ -19,6 +19,7 @@ public class Constraint implements Serializable {
     final static int FK=1; // tipo foreign key
     final static int CHECK=2; // tipo Check
     
+    String tabla;
     String nombre;
     int tipo;
     ArrayList<Columna> colsPkeys;
@@ -26,10 +27,12 @@ public class Constraint implements Serializable {
     ArrayList<Columna> localFkeys;
     ArrayList<Columna> refKeys;
     String foreignTable;
+    String exprText;
+    Expression expr;
     
     
     //Constructor para primary key
-    public Constraint(String nombre, int tipo, ArrayList<Columna> columnas_pk){
+    public Constraint(String nombre, int tipo, ArrayList<Columna> columnas_pk,String tabla){
         this.nombre = nombre;
         this.tipo = tipo;
         colsPkeys = columnas_pk;
@@ -37,15 +40,24 @@ public class Constraint implements Serializable {
     
     }
     //Constructor para foreign Key
-    public Constraint(String nombre, int tipo, ArrayList<Columna> locales,ArrayList<Columna> foreign,String tableReference){
+    public Constraint(String nombre, int tipo, ArrayList<Columna> locales,ArrayList<Columna> foreign,String tableReference,String tabla){
         this.nombre = nombre;
         this.tipo = tipo;
         this.localFkeys = locales;
         this.refKeys=foreign;
         this.foreignTable=tableReference;
-    
+        this.tabla = tabla;
+
     }    
-    
+    //Constructor para Check
+    public Constraint(String nombre,int tipo, Expression e,String tabla,String ex){
+        this.nombre = nombre;
+        this.tipo = tipo;
+        expr = e;
+        this.tabla = tabla;
+        this.exprText=ex;
+
+    }     
     
     public String toString(){
         String s = "CONSTRAINT: "+nombre+" ";
@@ -76,7 +88,9 @@ public class Constraint implements Serializable {
              
                 
             case 2:
-                t="CHECK";
+                t="CHECK (";
+                s+=t;
+                s+=" "+this.exprText+" )"; 
                 break;
         }
         return s;

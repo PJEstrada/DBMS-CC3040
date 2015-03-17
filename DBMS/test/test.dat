@@ -1,0 +1,8 @@
+Base de Datos: test
+Numero Tablas: 1
+
+Tabla: asignacion213 
+Cantidad de Registros: 0
+idserial  Type: INT,  estudianteid  Type: INT,  universidadid  Type: INT,  materia  Type: CHAR(255),  nota  Type: INT,  
+CONSTRAINT: pkeyAsignacion P_KEY ( idserial,  )   CONSTRAINT: checkNota CHECK ( 7>8AND(nota<100) )  
+

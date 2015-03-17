@@ -5,6 +5,7 @@
  */
 package proyecto1basesdatos;
 
+import java.awt.Component;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +20,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import static proyecto1basesdatos.DB.deleteFolder;
 import static proyecto1basesdatos.DBMS.metaData;
 
 /**
@@ -89,6 +92,61 @@ public class Tabla implements Serializable {
         } catch (Exception ex) {
             Logger.getLogger(Tabla.class.getName()).log(Level.SEVERE, null, ex);
         }        
+    }
+    
+    public static Tabla loadTable(String nombreTabla){
+                 
+        String currentDir = System.getProperty("user.dir");
+        File f = new File(currentDir+"/DBMS/"+DBMS.currentDB+"/"+nombreTabla+".ser");
+        if(f.exists() && !f.isDirectory()) {
+            //Deserializamos
+            try
+            {
+               FileInputStream fileIn = new FileInputStream(currentDir+"/DBMS/"+DBMS.currentDB+"/"+nombreTabla+".ser");
+               ObjectInputStream in = new ObjectInputStream(fileIn);
+               Tabla ret = (Tabla) in.readObject();
+               in.close();
+               fileIn.close(); 
+               return ret;
+            }catch(Exception i)
+            {
+               i.printStackTrace();
+               return null;         
+            }            
+        
+        }  
+        else{
+            return null;
+        }       
+    
+    }
+    
+    private void deleteOldFilesWithName(String oldName){
+        String currentDir = System.getProperty("user.dir");
+        File directorio  = new File(currentDir+"/DBMS/"+DBMS.currentDB+"/"+oldName+".ser");
+        boolean existe = directorio.exists();
+        if(existe){
+             File f1  = new File(currentDir+"/DBMS/"+DBMS.currentDB+"/"+oldName+"_constraints.ser");
+             File f2  = new File(currentDir+"/DBMS/"+DBMS.currentDB+"/"+oldName+"_cols.ser");
+             f1.delete();
+             f2.delete();
+             directorio.delete();        
+        }     
+    }
+    
+    public void renameTo(String s){
+        String oldName = this.name;
+        this.name = s;
+        for(Columna c: this.columnas){
+            c.tabla=s;
+        }
+        for(Constraint c:this.constraints){
+            c.tabla=s;
+        }
+        this.deleteOldFilesWithName(oldName);
+        this.guardarTabla();
+        
+    
     }
     
     public static ArrayList<Columna> loadColums(String nombreTabla){
