@@ -5,8 +5,7 @@ CREATE TABLE asignacion
   universidadid INT,
   materia CHAR(255),
   nota INT,
-  CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial)
-  CONSTRAINT pkeyAsignacion2 PRIMARY KEY (estudianteid)
+  CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial),
   CONSTRAINT checkNota CHECK ( 7>8 AND (nota<100) )
 )
 
@@ -26,8 +25,77 @@ tittle CHAR(255),
 release_date DATE,
 kind CHAR(255),
 
+)
+
+ALTER TABLE asignacion RENAME TO asignacion2
+
+
+/*pruebas alter table add column*/
+
+ALTER TABLE asignacion ADD COLUMN nuevaCol1 INT,
+CONSTRAINT PRIMARY KEY (nuevaCol1) 
+
+
+ALTER TABLE asignacion ADD COLUMN nuevaCol2 INT
+CONSTRAINT miCons2 REFERENCES asignacion (nuevaCol1)
+
+/* Si revisa columnas de la tabla en el check*/
+
+ALTER TABLE asignacion ADD COLUMN nuevaCol4 INT
+CONSTRAINT miCons4 CHECK (nuevaCol3>nuevaCol4)
+
+
+ALTER TABLE asignacion ADD COLUMN nuevaCol9 INT 
+
+CONSTRAINT miCons9 REFERENCES films (code)
+CONSTRAINT micons10 CHECK (100>nuevaCol1)
+ 
+
+/* Prueba retriccion unique foregin key */
+
+CREATE TABLE films
+(
+code INT,
+tittle CHAR(255),
+release_date DATE,
+kind CHAR(255),
+duracion INT,
+
 CONSTRAINT pkeyfilms PRIMARY KEY (code)
 
 )
 
-ALTER TABLE asignacion RENAME TO asignacion2
+
+CREATE TABLE A
+(
+  idSerial INT,
+  estudiante INT,
+
+  CONSTRAINT pkeyA PRIMARY KEY (idSerial),
+  CONSTRAINT fkeyAsignacion FOREIGN KEY (idSerial) REFERENCES films (duracion)
+)
+
+/* Prueba add Column con constraint foreign key*/
+
+CREATE TABLE films
+(
+code INT,
+tittle CHAR(255),
+release_date DATE,
+kind CHAR(255),
+duracion INT,
+CONSTRAINT pkeyFilm PRIMARY KEY (code)
+)
+
+ALTER TABLE films ADD COLUMN idFilm INT CONSTRAINT pkeyFilms PRIMARY KEY
+CREATE TABLE A
+(
+  idSerial INT,
+  estudiante INT,
+
+  CONSTRAINT pkeyA PRIMARY KEY (idSerial),
+)
+
+ALTER TABLE films ADD COLUMN nueva2 INT CONSTRAINT fkeyFilms1 REFERENCES a  (idSerial)
+
+/*----------------------------------------------------------------------------------------*/

@@ -57,5 +57,11 @@ public class Term implements Serializable {
         type = c.tipo;
         isColumn=true;
     }    
+    
+    /*
+    Metodo getValue: verifica si el term es una columna o un valor. Si es un valor retorno el valor
+    Si es una columna. revisa el iterador de tabla y obtiene el valor actual correspondiente a la columna de la tupla
+    en la que se encuentre el iterador
+    */
    
 }

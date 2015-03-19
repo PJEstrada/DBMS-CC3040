@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -42,8 +43,15 @@ public class DBMetaData implements Serializable {
         Writer writer = null;
         String currentDir = System.getProperty("user.dir");
         try {
+            //Borramos la data anterior
+            PrintWriter writer1 = new PrintWriter(new OutputStreamWriter(
+            new FileOutputStream(currentDir+"/DBMS/"+nombreDB+"/"+nombreDB+".dat"), "utf-8"));
+            writer1.print("");
+            writer1.close();  
+            //Escribimos la nueva data
             writer = new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream(currentDir+"/DBMS/"+nombreDB+"/"+nombreDB+".dat"), "utf-8"));
+            
             String out = this.toString()+"\n\r";
             for(TablaMetaData d: tablas){
                 out+=d.toString();

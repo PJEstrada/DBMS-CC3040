@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.JTextArea;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 /*
@@ -23,10 +24,13 @@ public class Loader extends SQLBaseVisitor<Object>{
     
         DBMS  dbms;
         ArrayList<Columna> colsCreate; // Almacena las columnas que se crean en CREATE TABLE para poder verificarlas en los metodos de constraints
-        Tabla tableCreate; 
+        Tabla tableCreate;
+        Columna addedCol; //Columna que se acaba de agregar en add column
+        TablaMetaData tableCreateMetaData;
         String createTableName;
         ArrayList<Columna> availableCols;
         ArrayList<Constraint> availableCons;
+        
         public Loader(DBMS dbms){
             this.dbms = dbms;
         
@@ -46,6 +50,34 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             return null;
         }
+        //Metodo que regresa todas las constraints de las tablas en la base de datos actual
+        public ArrayList<Constraint> getAllForeignConstraints(){
+             ArrayList<Constraint> result = new ArrayList<Constraint>();
+             DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+             for(TablaMetaData t: d.tablas){
+                ArrayList<Constraint> c = Tabla.loadConstraints(t.nombre);
+                for(Constraint c1: c){
+                    if(c1.tipo==Constraint.FK){
+                        result.add(c1);
+                    }
+                }
+             }
+             return result;
+        }
+        public Constraint hayReferencia(String colName, String tableName, ArrayList<Constraint> cons){
+            for(Constraint c: cons){
+                if(c.foreignTable.equalsIgnoreCase(tableName)){
+                    for(Columna col: c.refKeys){
+                        if(col.nombre.equalsIgnoreCase(colName)){
+                            return c;
+                        }
+                    }
+                
+                }
+            
+            }
+            return null;
+        }
         //Metodo para encontrar primary key de una lista de constraints
         public boolean findPk(ArrayList<Constraint> cons){
             for(Constraint c:cons){
@@ -53,6 +85,24 @@ public class Loader extends SQLBaseVisitor<Object>{
                     return true;
                 }
             
+            }
+            return false;
+        
+        }
+        public Constraint findConstraint(String c, ArrayList<Constraint> cons){
+            for(Constraint c1: cons){
+                if(c.equalsIgnoreCase(c1.nombre)/*&& c.tipo==c1.tipo*/){
+                    return c1;
+                }
+            }
+            return null;
+        
+        }        
+        public boolean findConstraint(Constraint c, ArrayList<Constraint> cons){
+            for(Constraint c1: cons){
+                if(c.nombre.equalsIgnoreCase(c1.nombre)/*&& c.tipo==c1.tipo*/){
+                    return true;
+                }
             }
             return false;
         
@@ -144,7 +194,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                 //Buscamos si la tabla ya existe en la metaData     
                 DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
                 for(TablaMetaData t:d.tablas){
-                    if(t.nombre.equals(name)){
+                    if(t.nombre.equalsIgnoreCase(name)){
                        Frame.jTextArea2.setText("ERROR: Ya existe la tabla: "+name);
                        return "ERROR";                       
                     
@@ -154,8 +204,16 @@ public class Loader extends SQLBaseVisitor<Object>{
                 ArrayList<Columna> cols = new ArrayList<Columna>();
                 for(ParseTree n: ctx.columnDecl()){
                     Columna c = (Columna) visit(n);
-                    cols.add(c);
-                    availableCols.add(c);
+                    Columna yaExiste = findCol(c.nombre,cols);
+                    if(yaExiste == null){
+                        cols.add(c);
+                        availableCols.add(c);
+                    }
+                    else{
+                       Frame.jTextArea2.setText("ERROR: La columna: <<"+c.nombre+">> Fue especificada mas de una vez");
+                       return "ERROR";                         
+                    }
+
                 }
                 //Guardamos las columnas para constraints
                 this.colsCreate=cols;
@@ -207,6 +265,8 @@ public class Loader extends SQLBaseVisitor<Object>{
                         Frame.jTextArea2.setText("ERROR: No es posible declarar dos primary keys. En la tabla: "+tableCreate.name);
                         return "ERROR";                    
                 }
+                
+                
                 //Revisando que existan los nombre de las columnas
                 ArrayList<Columna> pkCols = new ArrayList<Columna>();
                 
@@ -226,6 +286,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
                 //Creamos constraint
                 Constraint c = new Constraint(name,Constraint.PK,pkCols,tableCreate.name);
+                //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                boolean existeConstraint = findConstraint(c,this.availableCons);
+                if(existeConstraint){
+                        Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        return "ERROR";               
+                }
                 return c;
                 
             }
@@ -250,14 +316,31 @@ public class Loader extends SQLBaseVisitor<Object>{
                 String refTable = ctx.idTabla().getText();
                 DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
                 TablaMetaData t = bd.findTable(refTable);
+
+                
                 if(t==null){
                         Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
                         return "ERROR";                   
                 }
+                
+              
                 //Si encontramos la tabla procedemos a buscar las columnas
                 else{
+                    ArrayList<Constraint> foreignConstraints = Tabla.loadConstraints(refTable);
                     ArrayList<Columna> fkCols = new ArrayList<Columna>();
                     ArrayList<Columna> cols = Tabla.loadColums(refTable);
+                    //Buscamos las columnas de la primary key de la tabla foranea
+                    ArrayList<Columna> columnasPrimary = new ArrayList<Columna>();
+                    for(Constraint c1: foreignConstraints){
+                        if(c1.tipo == Constraint.PK){
+                            columnasPrimary.addAll(c1.colsPkeys);
+                        }
+                    
+                    }
+                    if(cols==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        return "ERROR";                   
+                    }
                     for(ParseTree n:ctx.refids()){
                         String text = n.getText();
                         //Buscamos las columnas de la tabla
@@ -272,7 +355,16 @@ public class Loader extends SQLBaseVisitor<Object>{
                             Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla: "+tableCreate.name);
                             return "ERROR";
                         }
+                        
                         else{
+                            //Si encontramos la columna, verificamos que la columna pertenezca al primary key de la tabla externa para garantizar que la llave sea unica
+                            
+                            Columna encontrada2 = findCol(encontrada.nombre,columnasPrimary);
+                            if(encontrada2==null){
+                                Frame.jTextArea2.setText("ERROR: No se puede crear la llave foranea. La columna de referecia: "+encontrada.nombre+" No es unica ");
+                                return "ERROR";
+                            }                           
+                            //Agregamos la columna 
                             fkCols.add(encontrada);
 
                         }
@@ -295,6 +387,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                     //Si todas las columnas tienen los mismo tipos, procedemos a crear la constraint
                     Constraint c = new Constraint(name,Constraint.FK,localCols,fkCols,refTable,this.tableCreate.name);
+                    //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                    boolean existeConstraint = findConstraint(c,this.availableCons);
+                    if(existeConstraint){
+                            Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                            return "ERROR";               
+                    }                   
+                    
                     return c;
                 
                 }
@@ -314,6 +413,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
                 Expression e1 = (Expression)e;
                 Constraint c = new Constraint(name,Constraint.CHECK,e1,tableCreate.name,expr);
+                //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                boolean existeConstraint = findConstraint(c,this.availableCons);
+                if(existeConstraint){
+                        Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        return "ERROR";               
+                }                  
                 return c;
                 
             
@@ -325,24 +430,24 @@ public class Loader extends SQLBaseVisitor<Object>{
             //Creamos la columan dependiendo del tipo
             String name = ctx.colName().getText();
             int colType = 0;
-            Columna c = new Columna(null,0,0);
+            Columna c = new Columna(null,0,0,tableCreate.name);
             if(ctx.tipo().CHAR()!=null){
                 colType = Columna.CHAR_TYPE;
                 int size = Integer.parseInt(ctx.tipo().NUM().getText());
-                c = new Columna(name,colType,size);
+                c = new Columna(name,colType,size,this.tableCreate.name);
             }
             else if(ctx.tipo().INT()!=null){
                 colType = Columna.INT_TYPE;
-                c = new Columna(name,colType);
+                c = new Columna(name,colType,this.tableCreate.name);
             
             }
             else if(ctx.tipo().FLOAT()!=null){
                 colType =Columna.FLOAT_TYPE;
-                c = new Columna(name,colType);
+                c = new Columna(name,colType,this.tableCreate.name);
             }
             else if(ctx.tipo().DATE()!=null){
                 colType = Columna.DATE_TYPE;
-                c = new Columna(name,colType);
+                c = new Columna(name,colType,this.tableCreate.name);
             
             }
             return c;
@@ -394,6 +499,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             tm.nombre=newName;
             t.renameTo(newName);
             DBMS.metaData.writeMetadata();
+            DBMS.guardar();
             Frame.jTextArea2.setText("Tabla: "+oldName+" renombrada a : '"+newName);
             return t;
             
@@ -401,8 +507,307 @@ public class Loader extends SQLBaseVisitor<Object>{
 	}
 	@Override
 	public Object visitAccionAlter(SQLParser.AccionAlterContext ctx) {
-            return super.visitAccionAlter(ctx);
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }  
+            String tableName = ctx.alterName().getText();
+            this.tableCreate = Tabla.loadTable(tableName);
+            DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+            TablaMetaData t = d.findTable(tableName);
+            this.tableCreateMetaData =t;
+            if(tableCreate == null){
+                Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                return "ERROR";               
+            }
+            for(ParseTree n: ctx.accion()){
+                Object accion = visit(n);
+                if(accion instanceof String){
+                    return "ERROR";
+                }
+            }
+            //Guardamos la tabla con los nuevos cambios
+            tableCreate.guardarTabla();
+            DBMS.metaData.writeMetadata();
+            DBMS.guardar();
+            Frame.jTextArea2.setText("Tabla alterada correctamente. Se realizaron: "+ctx.accion().size()+" alteraciones-");
+            return true;
 	}
+
+ 	@Override
+	public Object visitAccion(SQLParser.AccionContext ctx) {
+            //Si es add Column
+            this.availableCons = tableCreate.constraints;
+            this.colsCreate = tableCreate.columnas;            
+            if(ctx.ADD()!=null && ctx.COLUMN()!=null){
+                String colName = ctx.columnName().getText();
+                Object tipo = visit(ctx.tipo());
+                if(tipo instanceof String){
+                    Frame.jTextArea2.setText("ERROR: tipo invalido al agregar columna");
+                    return "ERROR";
+                }
+                int tipo1 = (Integer) tipo;
+                Columna yaExiste = findCol(colName,this.tableCreate.columnas);
+                if(yaExiste!=null){
+                       Frame.jTextArea2.setText("ERROR: La columna: <<"+colName+">> Fue especificada mas de una vez");
+                       return "ERROR";                         
+                }
+                // Creando la columna
+                Columna c;
+                if(tipo1==Columna.CHAR_TYPE){
+                    int size = Integer.parseInt(ctx.tipo().NUM().getText());
+                     c = new Columna(colName,tipo1,size,tableCreate.name);
+                     this.addedCol=c;
+                }
+                else{
+                     c = new Columna (colName,tipo1,tableCreate.name);
+                     this.addedCol=c;
+                }
+                
+                //Verificando si existen contratins
+                ArrayList<Constraint> nuevasConstraints = new ArrayList<Constraint>();
+                if(ctx.singleColConstraint()!=null){
+                    // Asignando las constraints creadas a las disponibles para verificar cosntraints duplicadas
+
+                    this.colsCreate.add(c); //Agregamos la nueva columna
+                    this.availableCols= this.colsCreate; // Agregamos a columnas disponibles para el caso en que haya un CHECK ( expression) con un term como columna
+                    for(ParseTree n: ctx.singleColConstraint()){
+                        Object cons = visit(n);
+                        if(!(cons instanceof Constraint)){
+                            return "ERROR";
+                        }
+                        Constraint cons1 = (Constraint)cons;
+                        nuevasConstraints.add(cons1);
+                        
+                    
+                    }
+                    // Verificamos si alguna constraint es primary key y si hay alguna tupla, no permitimos agregar la columna porque habran valores nulos en una pk
+                    for(Constraint cs: nuevasConstraints){
+                        if(cs.tipo==Constraint.PK && this.tableCreate.tuplas.size()>0){
+                            Frame.jTextArea2.setText("ERROR: no se puede insertar primary key : <<"+cs.nombre+">> porque se crearan valores nulos en la tabla ");
+                        }
+                    
+                    }
+                    
+                    
+                    /*
+                     si ya hay tuplas en la tabla y no habia PK, se agrega a cada tupla el valor nulo
+                    */
+                    ArrayList<Tupla> tuplas = this.tableCreate.tuplas;
+                    for(Tupla fila: tuplas){
+                        fila.valores.add(null);  
+                    }
+                    
+                    // Agregamos la nueva columna a la metaData
+                    ColumnMetaData cm= new ColumnMetaData(c.nombre,c.getStringType(c.tipo));
+                    this.tableCreateMetaData.columnas.add(cm);
+                    //Agregamos las nuevas constraints a la tabla
+                    this.tableCreate.constraints.addAll(nuevasConstraints);
+                    //Agregamos las nuevas constraints a la metaData
+                    for(Constraint cons: nuevasConstraints){
+                        ConstraintMetaData consm = new ConstraintMetaData(cons.nombre,cons.getStringType(cons.tipo),cons.toString());
+                        tableCreateMetaData.constraints.add(consm);
+                    }
+                    return true;
+                }
+            }
+            // Si es add constraint
+            else if (ctx.ADD()!= null && ctx.CONSTRAINT()!= null){
+                Object c = visit(ctx.colConstraint());
+                if(!(c instanceof Constraint)){
+                    return "ERROR";
+                    
+                }
+                
+                Constraint c1 = (Constraint)c;
+                ConstraintMetaData cmt = new ConstraintMetaData(c1.nombre,c1.getStringType(c1.tipo),c1.toString());
+                tableCreate.constraints.add(c1); 
+                this.tableCreateMetaData.constraints.add(cmt);
+                return true;
+            }
+            // Si es drop column
+            else if(ctx.DROP()!= null && ctx.COLUMN()!= null){
+                String colName = ctx.columnName().getText();
+                //Verificamos que la columna exista 
+                Columna yaExiste = findCol(colName,this.tableCreate.columnas);
+                if(yaExiste==null){
+                    Frame.jTextArea2.setText("ERROR: no se encuentra la columna <<"+colName+">> en la tabla: "+tableCreate.columnas);
+                    return "ERROR";
+                }
+                
+                //Revisar que no existan referencias en llaves foraneas de otras tablas
+                ArrayList<Constraint> allForeignConstraints = getAllForeignConstraints();
+                Constraint hayReferencia = hayReferencia(colName,tableCreate.name,allForeignConstraints);
+                if(hayReferencia !=null){
+                    Frame.jTextArea2.setText("ERROR: No se puede eliminar <<"+colName+">> porque existe la referencia <<"+hayReferencia.nombre+">> en la tabla: "+hayReferencia.tabla);
+                    return "ERROR";
+                } 
+                //Elimnamos la columna correspondiente a la fila en cada tupla y la columna como atributo de la tabla y del metadata
+                tableCreate.eliminarColumna(yaExiste);
+                return true;
+            }
+            // si es drop constraint
+            else if(ctx.DROP()!= null && ctx.CONSTRAINT()!= null){
+                String consName = ctx.ID().getText();
+                Constraint yaExiste = this.findConstraint(consName, tableCreate.constraints);
+                if(yaExiste==null){
+                     Frame.jTextArea2.setText("ERROR: no se encuentra la constraint <<"+consName+">> en la tabla: "+tableCreate.columnas);
+                     return "ERROR";               
+                }
+                //Si la constraint es primary key, revisamo referencias a otras tablas de las columnas de la pk
+                if(yaExiste.tipo == Constraint.PK){
+                    ArrayList<Columna> columnas = yaExiste.colsPkeys;
+                    ArrayList<Constraint> allForeignConstraints = getAllForeignConstraints();
+                    for(Columna col1: columnas){
+                        Constraint hayReferencia = hayReferencia(col1.nombre,tableCreate.name,allForeignConstraints);
+                        if(hayReferencia !=null){
+                            Frame.jTextArea2.setText("ERROR: No se puede eliminar la constraint PK: <<"+col1.nombre+">> porque existe la referencia <<"+hayReferencia.nombre+">> en la tabla: "+hayReferencia.tabla);
+                            return "ERROR";
+                        }                    
+                    }
+                
+                }
+                tableCreate.eliminarConstraint(consName);
+                return true;
+                
+            
+            }
+            else{
+                return "ERROR";
+            }
+            return "ERROR";
+	}
+        
+        @Override 
+        public Object visitSingleColConstraint(@NotNull SQLParser.SingleColConstraintContext ctx) {
+            //Si es primary key 
+            if(ctx.PRIMARY()!=null){
+                String name = ctx.pkNombre().getText();
+                //Revisamos que no exista una primary key en las constraints declaradas antes
+                boolean hay_pk = findPk(availableCons);
+                if(hay_pk){
+                        Frame.jTextArea2.setText("ERROR: No es posible declarar dos primary keys. En la tabla: "+tableCreate.name);
+                        return "ERROR";                    
+                }
+                //No hacemos ninguna revision si la columna existe o no pues esta siendo agregada en este momento.
+                
+                //Creamos constraint
+                ArrayList<Columna> pkCols = new ArrayList<Columna>();
+                pkCols.add(this.addedCol);
+                Constraint c = new Constraint(name,Constraint.PK,pkCols,tableCreate.name);
+                //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                boolean existeConstraint = findConstraint(c,this.availableCons);
+                if(existeConstraint){
+                        Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        return "ERROR";               
+                }
+                return c;                
+            }
+            else if(ctx.REFERENCES()!=null){
+                String name = ctx.fkNombre().getText();
+                //Revisando que existan los nombre de las columnas en la tabla local
+                ArrayList<Columna> localCols = new ArrayList<Columna>();
+                localCols.add(addedCol);
+                //Obteniendo la tabla que referencia
+                String refTable = ctx.idTabla().getText();
+                DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
+                TablaMetaData t = bd.findTable(refTable);
+                if(t==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        return "ERROR";                   
+                }
+                else{
+                    // Si encontramos la tabla Cargamos las constraint foraneas
+                    ArrayList<Constraint> foreignConstraints = Tabla.loadConstraints(refTable);
+                    ArrayList<Columna> fkCols = new ArrayList<Columna>();
+                    ArrayList<Columna> cols = Tabla.loadColums(refTable);
+                    //Buscamos las columnas de la primary key de la tabla foranea
+                    ArrayList<Columna> columnasPrimary = new ArrayList<Columna>();
+                    for(Constraint c1: foreignConstraints){
+                        if(c1.tipo == Constraint.PK){
+                            columnasPrimary.addAll(c1.colsPkeys);
+                        }
+                    }
+                    if(cols==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        return "ERROR";                   
+                    }
+                    
+                    String text = ctx.refids().getText();
+                    //Buscamos las columnas de la tabla foranea
+                    if(cols==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra archivo de columnas para la tabla: "+refTable);
+                        return "ERROR";                            
+                    }
+                    Columna encontrada = findCol(text,cols);
+                    if(encontrada==null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla: "+refTable);
+                        return "ERROR";
+                    }
+                    else{
+                        //Si encontramos la columna, verificamos que la columna pertenezca al primary key de la tabla externa para garantizar que la llave sea unica
+                        Columna encontrada2 = findCol(encontrada.nombre,columnasPrimary);
+                        if(encontrada2==null){
+                            Frame.jTextArea2.setText("ERROR: No se puede crear la llave foranea. La columna de referecia: "+encontrada.nombre+" No es unica ");
+                            return "ERROR";
+                        }                           
+                        //Agregamos la columna 
+                        fkCols.add(encontrada);
+
+                    }
+                    //Una vez obtenidos los dos arreglos de columnas verificamos que tengan el mismo tamaño
+                    if(fkCols.size()!=localCols.size()){
+                        Frame.jTextArea2.setText("ERROR: El numero de columnas locales y remotas en la foregin key debe ser el mismo");
+                        return "ERROR";
+                    }
+                    //Si los arreglos son iguales verificamos que tengan los mismos tipo
+                    for(int i =0;i<localCols.size();i++){
+                        Columna local = localCols.get(i);
+                        Columna foreign = fkCols.get(i);
+                        if(local.tipo!=foreign.tipo){
+                            Frame.jTextArea2.setText("ERROR: las columnas: '"+local.nombre+", "+foreign.nombre+"' Deben tener el mismo tipo");
+                            return "ERROR";                       
+                        
+                        }
+                    }
+                    //Si todas las columnas tienen los mismo tipos, procedemos a crear la constraint
+                    Constraint c = new Constraint(name,Constraint.FK,localCols,fkCols,refTable,this.tableCreate.name);
+                    //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                    boolean existeConstraint = findConstraint(c,this.availableCons);
+                    if(existeConstraint){
+                            Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                            return "ERROR";               
+                    }                   
+                    return c;
+                }                
+            }           
+            else if(ctx.CHECK()!= null){
+                String name= ctx.chNombre().getText();
+                //Obtenemos la expresion del CHECK
+                Object e = visit(ctx.expression());
+                String expr = ctx.expression().getText();
+                //Verificamos que no existan errores en la expresion para poder castear
+                if(! (e instanceof Expression)){
+                    return "ERROR";
+                
+                }
+                Expression e1 = (Expression)e;
+                Constraint c = new Constraint(name,Constraint.CHECK,e1,tableCreate.name,expr);
+                //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                boolean existeConstraint = findConstraint(c,this.availableCons);
+                if(existeConstraint){
+                        Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        return "ERROR";               
+                }                  
+                return c;            
+            
+            }
+            
+            return "ERROR";
+                
+        }
+        
 	@Override
 	public Object visitFkNombre(SQLParser.FkNombreContext ctx) {
 		// TODO Auto-generated method stub
@@ -770,11 +1175,7 @@ public class Loader extends SQLBaseVisitor<Object>{
 	}
 
 
-	@Override
-	public Object visitAccion(SQLParser.AccionContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitAccion(ctx);
-	}
+
 
 	@Override
 	public Object visitColumnsUpdate(SQLParser.ColumnsUpdateContext ctx) {
@@ -831,7 +1232,22 @@ public class Loader extends SQLBaseVisitor<Object>{
 	@Override
 	public Object visitTipo(SQLParser.TipoContext ctx) {
 		// TODO Auto-generated method stub
-		return super.visitTipo(ctx);
+		if(ctx.CHAR()!= null){
+                    return Columna.CHAR_TYPE;
+                }
+                else if (ctx.DATE()!= null){
+                    return Columna.DATE_TYPE;
+                }
+                else if (ctx.INT()!= null){
+                    return Columna.INT_TYPE;
+                    
+                }
+                else if (ctx.FLOAT()!= null){
+                    return Columna.FLOAT_TYPE;
+                }
+                else{
+                    return "ERROR";
+                }
 	}
 
 

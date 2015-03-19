@@ -24,19 +24,38 @@ public class Columna implements Serializable {
     String nombre; //Nombre de la columna
     String tabla; //Nombre de la tabla
     
-    public Columna(String nombre,int tipo ){
+    public Columna(String nombre,int tipo,String tabla ){
         this.nombre = nombre;
         this.tipo = tipo;
         size = -1;
+        this.tabla=tabla;
     
     }
-    public Columna(String nombre,int tipo,int size ){
+    public Columna(String nombre,int tipo,int size, String tabla ){
         this.nombre = nombre;
         this.tipo = tipo;
         this.size = size;
+        this.tabla = tabla;
     
     }    
-    
+    public String getStringType(int i){
+        String t="";
+        switch(i){
+            case 0:
+                t="INT";
+                break;
+            case 1:
+                t="FLOAT";
+                break;
+            case 2:
+                t="CHAR("+size+")";
+                break;
+            case 3:
+                t="DATE";
+                break;
+        }  
+        return t;
+    }
     public String toString(){
         String t="";
         switch(tipo){

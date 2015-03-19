@@ -556,6 +556,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSingleColConstraint(@NotNull SQLParser.SingleColConstraintContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSingleColConstraint(@NotNull SQLParser.SingleColConstraintContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDmlQuery(@NotNull SQLParser.DmlQueryContext ctx) { }
 	/**
 	 * {@inheritDoc}

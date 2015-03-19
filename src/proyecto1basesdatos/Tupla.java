@@ -16,4 +16,9 @@ public class Tupla implements Serializable {
     private static final long serialVersionUID = 6529685098267757699L;
     Tabla tabla; //Tabla a la que pertenece la tupla
     ArrayList<Object> valores;
+    
+    public Tupla(ArrayList<Object> vals, Tabla t){
+        this.tabla=t;
+        //Agregamos el valor de cada columna uno por uno para verificar constraints y cualquier otra condicion
+    }
 }

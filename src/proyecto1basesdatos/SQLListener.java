@@ -463,6 +463,16 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitAndexpr(@NotNull SQLParser.AndexprContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#singleColConstraint}.
+	 * @param ctx the parse tree
+	 */
+	void enterSingleColConstraint(@NotNull SQLParser.SingleColConstraintContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#singleColConstraint}.
+	 * @param ctx the parse tree
+	 */
+	void exitSingleColConstraint(@NotNull SQLParser.SingleColConstraintContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SQLParser#dmlQuery}.
 	 * @param ctx the parse tree
 	 */

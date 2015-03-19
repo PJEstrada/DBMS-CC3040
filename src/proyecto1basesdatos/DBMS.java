@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -30,7 +31,50 @@ public class DBMS {
     
     
     public DBMS(){
-      
+        
+        /* Test para tiempo serializacion / deserializacion*/
+      /* int a =0;
+        ArrayList<Tupla> ts = new ArrayList<Tupla>();
+        for(int i =0; i<1500000;i++){
+            a+=20000*i;
+            ArrayList<Object> vals = new ArrayList<Object>();
+            for(int j =0; j<100;j++){
+                vals.add(j);
+            }
+            Tupla t = new Tupla(vals,null);
+            ts.add(t);
+        }          
+                String currentDir1 = System.getProperty("user.dir");
+                FileOutputStream fileOut1;           
+                try {
+                    fileOut1 = new FileOutputStream(currentDir1+"/DBMS/testTime.ser");
+                        ObjectOutputStream out1;                 
+                       out1 = new ObjectOutputStream(fileOut1);
+                       out1.writeObject(ts);                    
+                } catch (Exception ex) {
+                    Logger.getLogger(DBMS.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                System.out.print(a);
+             try
+            {
+               FileInputStream fileIn = new FileInputStream(currentDir1+"/DBMS/testTime.ser");
+               ObjectInputStream in1 = new ObjectInputStream(fileIn);
+               ts = (ArrayList<Tupla>) in1.readObject();
+               in1.close();
+               fileIn.close();
+               
+               
+            }catch(Exception i)
+            {
+               i.printStackTrace();
+               return;         
+            }     
+        System.out.print(a);*/
+        
+        /*Para debugging cuando alteramos tablas*/
+        DBMS.currentDB="test";
+        Tabla t = Tabla.loadTable("films");
+        
         String currentDir = System.getProperty("user.dir");
         File f = new File(currentDir+"/DBMS/master.dat");
         // Buscamos el archivo. Si ya existe solo lo cargamos y lo asignamos a la variable estatica

@@ -284,6 +284,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAndexpr(@NotNull SQLParser.AndexprContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#singleColConstraint}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSingleColConstraint(@NotNull SQLParser.SingleColConstraintContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SQLParser#dmlQuery}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

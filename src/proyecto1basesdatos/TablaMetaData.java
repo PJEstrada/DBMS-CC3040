@@ -16,10 +16,10 @@ public class TablaMetaData implements Serializable{
     private static final long serialVersionUID = 6529685098267757692L;
     String nombre;
     int cantRegistros;
-    ArrayList<String> columnas;
-    ArrayList<String> constraints;
+    ArrayList<ColumnMetaData> columnas;
+    ArrayList<ConstraintMetaData> constraints;
     
-    public TablaMetaData(String n,ArrayList<String>cols, ArrayList<String> constraints){
+    public TablaMetaData(String n,ArrayList<ColumnMetaData>cols, ArrayList<ConstraintMetaData> constraints){
         this.nombre = n;
         cantRegistros =0;
         columnas = cols;
@@ -30,13 +30,14 @@ public class TablaMetaData implements Serializable{
     public String toString(){
         String s ="Tabla: "+nombre+" \n\r";
         s+="Cantidad de Registros: "+cantRegistros+"\n\r";
-        for(String s1: columnas){
-            s+= s1+"  ";
+        for(ColumnMetaData s1: columnas){
+            s+= s1.toString()+",  ";
         }
         s+="\n\r";
-        for(String s2:constraints){
+        s+="CONSTRAINTS: \n\r";
+        for(ConstraintMetaData s2:constraints){
         
-            s+=s2+"  ";
+            s+=s2.toString()+" \n\r ";
         }
         s+="\n\r";
         return s;

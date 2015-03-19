@@ -36,6 +36,7 @@ public class Constraint implements Serializable {
         this.nombre = nombre;
         this.tipo = tipo;
         colsPkeys = columnas_pk;
+        this.tabla = tabla;
         
     
     }
@@ -58,7 +59,20 @@ public class Constraint implements Serializable {
         this.exprText=ex;
 
     }     
-    
+    public String getStringType(int t){
+        String s = "";
+        if(t==0){
+            s="PK";
+        }
+        else if(t==1){
+            s = "FK";
+        }
+        else if(t==2){
+            s = "CHECK";
+        }
+      
+        return s;
+    }
     public String toString(){
         String s = "CONSTRAINT: "+nombre+" ";
         String t="";

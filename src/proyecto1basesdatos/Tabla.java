@@ -41,16 +41,17 @@ public class Tabla implements Serializable {
         this.name = n;
         columnas = cols;
         constraints = new ArrayList<Constraint>();
+        this.tuplas = new ArrayList<Tupla>();
         
         //Escribimos la MetaData de la tabla
         //Escribiendo Columnas
-        ArrayList<String> mcols = new ArrayList<String>();
+        ArrayList<ColumnMetaData> mcols = new ArrayList<ColumnMetaData>();
         for(Columna c: columnas){
-            mcols.add(c.toString());
+            mcols.add(new ColumnMetaData(c.nombre,c.getStringType(c.tipo)));
         
         }
         
-        TablaMetaData t = new TablaMetaData(name,mcols,new ArrayList<String>());
+        TablaMetaData t = new TablaMetaData(name,mcols,new ArrayList<ConstraintMetaData>());
         DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
         d.tablas.add(t);
         DBMS.guardar();
@@ -149,6 +150,81 @@ public class Tabla implements Serializable {
     
     }
     
+    public void eliminarConstraint(String nombreConstraint){
+        int i =0;
+        boolean f = false;
+        for(Constraint c: this.constraints){
+            if(c.nombre.equalsIgnoreCase(nombreConstraint)){
+                f=true;
+                break;
+            }
+            i++;
+        }
+        if(f){this.constraints.remove(i);}
+        //Eliminamos constraint de la metaData
+         DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+         TablaMetaData t = d.findTable(this.name);  
+         i=0;
+         f=false;
+         for(ConstraintMetaData cm: t.constraints){
+             if(cm.nombre.equalsIgnoreCase(nombreConstraint)){
+                 f=true;
+                 break;
+             }
+             i++;
+         }
+         if(f){t.constraints.remove(i);}
+         
+    }
+    
+    //Elimina la columna de cada una de las tuplas de la tabla, y del atributo columnas del objeto tabla. Ademas actualiza la metaData eliminando la columna y el archivo serializado de constraints y columnas
+    public void eliminarColumna(Columna col){
+        int i =0;
+        boolean find = false;
+        for(Columna c: this.columnas){
+            //Si encontramos la columna procedemos a eliminarla y guardamos el indice para las tuplas
+            if(c.nombre.equalsIgnoreCase(col.nombre)&&c.tabla.equalsIgnoreCase(col.tabla)){
+                find = true;
+                break;
+            
+            }
+            i++;
+        }
+        
+        if(find){ this.columnas.remove(i);}
+        
+        //Recorremos las tupls y eliminamos el i-esimo elemento de cada unoa
+        for(Tupla t: this.tuplas){
+            t.valores.remove(i);
+        }
+        //Verificamos si existe una primary key con la columna para eliminarla
+        String n="";
+        for(Constraint constr: this.constraints){
+            for(Columna colCons: constr.colsPkeys){
+                if(colCons.nombre.equalsIgnoreCase(col.nombre)){
+                    n = constr.nombre;
+                    break;
+                }
+            }
+        }
+        eliminarConstraint(n);
+        //Actualizamo la metadata eliminando la columna
+        DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+        TablaMetaData t = d.findTable(this.name);
+        i =0;
+        find = false;
+        for(ColumnMetaData cm: t.columnas){
+            if(cm.nombre.equalsIgnoreCase(col.nombre)){
+                find = true;
+                break;
+            }
+            i++;
+        }
+        if(find){t.columnas.remove(i);}
+    
+    }
+    
+    
     public static ArrayList<Columna> loadColums(String nombreTabla){
                 
         String currentDir = System.getProperty("user.dir");
@@ -175,22 +251,50 @@ public class Tabla implements Serializable {
         }
 
     }
+    public static ArrayList<Constraint> loadConstraints(String nombreTabla){
+                
+        String currentDir = System.getProperty("user.dir");
+        File f = new File(currentDir+"/DBMS/"+DBMS.currentDB+"/"+nombreTabla+"_constraints.ser");
+        if(f.exists() && !f.isDirectory()) {
+            //Deserializamos
+            try
+            {
+               FileInputStream fileIn = new FileInputStream(currentDir+"/DBMS/"+DBMS.currentDB+"/"+nombreTabla+"_constraints.ser");
+               ObjectInputStream in = new ObjectInputStream(fileIn);
+               ArrayList<Constraint> ret = (ArrayList<Constraint>) in.readObject();
+               in.close();
+               fileIn.close(); 
+               return ret;
+            }catch(Exception i)
+            {
+               i.printStackTrace();
+               return null;         
+            }            
+        
+        }  
+        else{
+            return null;
+        }
+
+    }    
+    
     public Tabla(String n, ArrayList<Columna> cols, ArrayList<Constraint> cons){
     
         this.name = n;
         columnas = cols;
         constraints = cons;  
+        this.tuplas = new ArrayList<Tupla>();
         //Escribimos la MetaData de la tabla
         //Escribiendo Columnas
-        ArrayList<String> mcols = new ArrayList<String>();
+        ArrayList<ColumnMetaData> mcols = new ArrayList<ColumnMetaData>();
         for(Columna c: columnas){
-            mcols.add(c.toString());
+            mcols.add(new ColumnMetaData(c.nombre,c.getStringType(c.tipo)));
         
         }
         //Escribiendo constraints
-         ArrayList<String> mcons = new ArrayList<String>();
+         ArrayList<ConstraintMetaData> mcons = new ArrayList<ConstraintMetaData>();
          for(Constraint c: constraints){
-            mcons.add(c.toString());
+            mcons.add(new ConstraintMetaData(c.nombre,c.getStringType(c.tipo),c.toString()));
          }
          
         TablaMetaData t = new TablaMetaData(name,mcols,mcons);
