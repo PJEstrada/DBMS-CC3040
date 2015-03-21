@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTextArea;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -30,6 +32,7 @@ public class Loader extends SQLBaseVisitor<Object>{
         String createTableName;
         ArrayList<Columna> availableCols;
         ArrayList<Constraint> availableCons;
+        static IteradorTabla iterador;
         
         public Loader(DBMS dbms){
             this.dbms = dbms;
@@ -537,7 +540,8 @@ public class Loader extends SQLBaseVisitor<Object>{
 
  	@Override
 	public Object visitAccion(SQLParser.AccionContext ctx) {
-            //Si es add Column
+            
+//Si es add Column
             this.availableCons = tableCreate.constraints;
             this.colsCreate = tableCreate.columnas;            
             if(ctx.ADD()!=null && ctx.COLUMN()!=null){
@@ -830,18 +834,380 @@ public class Loader extends SQLBaseVisitor<Object>{
                 return visit(ctx.expression());
             }
 	}
-
+       @Override public Object visitMultiInsert(@NotNull SQLParser.MultiInsertContext ctx) {
+           int size = ctx.insertStmt().size();
+           int i =0;
+           for(ParseTree n: ctx.insertStmt()){
+               Object x = visit(n);
+               if(x instanceof String){
+                    Frame.jTextArea2.append("\n Error en insert no."+i);      
+                    return "ERROR";
+               }
+               i++;
+           }
+           Frame.jTextArea2.setText("Insert ("+size+") registros con exito.");
+           return true;
+       
+       }
 	@Override
 	public Object visitInsertStmt(SQLParser.InsertStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitInsertStmt(ctx);
+                 ArrayList<Object> valores = new ArrayList<Object>();
+                 ArrayList<Integer> tipos = new ArrayList<Integer>();
+                //Cargamos la tabla donde se insertara la tupla
+                String tableName = ctx.table().getText();
+                Tabla t = Tabla.loadTable(tableName);
+                if(t==null){
+                    Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                    return "ERROR";
+                }  
+                 //Verificamos si hay columnas especificadas
+                if(ctx.columnList()!=null){
+                    ArrayList<Columna> columnasEspecificadas= new ArrayList<Columna>();
+                    //Obtenemos las columnas que se especificaron
+                    for(ParseTree n: ctx.columnList().colName()){
+                        String colName = n.getText();
+                        Columna existe = this.findCol(colName, t.columnas);
+                        if(existe == null){
+                            Frame.jTextArea2.setText("ERROR: No se encuentra la Columna: <<"+colName+">> en la tabla: "+tableName);
+                            return "ERROR";                           
+                        }
+                        columnasEspecificadas.add(existe);
+                        
+                    }
+                    ArrayList<Integer> indicesColumnas = new ArrayList<Integer>();
+                    //Obtenemos los indices de las columnas especificadas en la tabla
+                    for(int i =0;i<columnasEspecificadas.size();i++){
+                        int indice = t.getIndiceColumna(columnasEspecificadas.get(i).nombre);
+                        indicesColumnas.add(indice);
+                    }
+                    //Llenamos los valores con nulls inicialmente
+                    for(int i =0;i<t.columnas.size();i++){
+                        valores.add(null);
+                        tipos.add(t.columnas.get(i).tipo);
+                    }
+                    // Verificamos que el numero de columnas y el numero de valores sean iguales 
+                    if(ctx.valueList().val().size()!=columnasEspecificadas.size()){
+                            Frame.jTextArea2.setText("ERROR: El numero de columnas y de valores especificados debe ser el mismo");
+                            return "ERROR";                           
+                    }
+                    //Asignamos los valores ingresado a los indices correctos en el arraylist valores
+                    int i =0;
+                    for(ParseTree n: ctx.valueList().val()){
+                        Object valueType1 = visit(n);                        
+                        if(!(valueType1 instanceof Integer) ){
+                            return "ERROR";
+                        }
+                        Object valor=null;
+                        int valueType = (int) valueType1;
+                        if(valueType==Columna.CHAR_TYPE){
+                            String v = n.getText();
+                            v= v.substring(1);
+                            v = v.substring(0,v.length()-1);                            
+                            valor = v;
+                        }
+                        else if (valueType == Columna.INT_TYPE){
+                            valor = Integer.parseInt(n.getText());
+                        }
+                        else if(valueType == Columna.FLOAT_TYPE){
+                            valor = Float.parseFloat(n.getText());
+                        }
+                        else if(valueType == Columna.DATE_TYPE){
+                            valor = LocalDate.parse(n.getText());
+                        }
+                        
+                        valores.set(indicesColumnas.get(i),valor);
+                        tipos.set(indicesColumnas.get(i),valueType); 
+                        i++;
+                    }                    
+                }               
+                else{
+                    // Si no hay columnas especificadas tomamos cada uno de los valores y su tipo
+                    for(ParseTree n: ctx.valueList().val()){
+                        Object valueType1 = visit(n);
+                       
+                        if(!(valueType1 instanceof Integer) ){
+                            return "ERROR";
+                        }
+                        Object valor=null;
+                        int valueType = (int) valueType1;
+                        if(valueType==Columna.CHAR_TYPE){
+                            String v = n.getText();
+                            v= v.substring(1);
+                            v = v.substring(0,v.length()-1);                            
+                            valor = v;
+                        }
+                        else if (valueType == Columna.INT_TYPE){
+                            valor = Integer.parseInt(n.getText());
+                        }
+                        else if(valueType == Columna.FLOAT_TYPE){
+                            valor = Float.parseFloat(n.getText());
+                        }
+                        else if(valueType == Columna.DATE_TYPE){
+                            valor = LocalDate.parse(n.getText());
+                        }
+                        valores.add(valor);
+                        tipos.add(valueType);
+                       
+                    }  
+                }
+                    //Verificamos que el numero de valores no sea mayor al numero de columnas
+                    if(valores.size()>t.columnas.size()){
+                        Frame.jTextArea2.setText("ERROR: El numero de valores ingresados es mayor al numero de columnas en la tabla: "+tableName);
+                        return "ERROR";                    
+                    }
+                    Tupla nuevaTupla = new Tupla(new ArrayList<Object>(),t);
+                    //Llenamos los valores con nulls
+                    for(Columna c: t.columnas){
+                        nuevaTupla.valores.add(null);
+                    }
+                    
+                    // Comprobamos los tipos de los valores con las columnas
+                    for(int i =0;i<valores.size();i++){
+                        int tipoValor = tipos.get(i);
+                        int tipoColumna =t.columnas.get(i).tipo;
+                        // Si no son iguales... intentamos hacer conversion de tipos
+                        if(tipoValor != tipoColumna){                           
+                            if(tipoValor == Columna.INT_TYPE){
+                                if(tipoColumna== Columna.CHAR_TYPE){
+                                    //Convertimos el entero a un char
+                                    String v = valores.get(i).toString();
+                                    //Verificamos el tamanio del string
+                                    if(v.length()>t.columnas.get(i).size){
+                                        Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        return "ERRROR";                                          
+                                    }                                    
+                                    
+                                    valores.set(i, v);
+                                }
+                                else if (tipoColumna == Columna.FLOAT_TYPE){
+                                    float v = Float.valueOf(valores.get(i).toString());
+                                    valores.set(i, v);
+                                }
+                                else{
+                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    return "ERRROR";
+                                }
+                            }
+                            else if (tipoValor == Columna.FLOAT_TYPE){
+                                if(tipoColumna==Columna.INT_TYPE){
+                                    float v1 = Float.valueOf(valores.get(i).toString());
+                                    int v = (int)v1;  //Convertimos el float al int trucando decimales
+                                    valores.set(i, v);
+                                  
+                                
+                                }
+                                else if (tipoColumna == Columna.CHAR_TYPE){
+                                    String v = valores.get(i).toString();
+                                    //Verificamos el tamanio del string
+                                    if(v.length()>t.columnas.get(i).size){
+                                        Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        return "ERRROR";                                          
+                                    }                                    
+                                    
+                                    valores.set(i, v);
+                                }
+                                else{
+                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    return "ERRROR";                                
+                                }
+                            
+                            }
+                            else if (tipoValor == Columna.DATE_TYPE){
+                                if(tipoColumna == Columna.CHAR_TYPE){
+                                    String v = valores.get(i).toString();
+                                    //Verificamos el tamanio del string
+                                    if(v.length()>t.columnas.get(i).size){
+                                        Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        return "ERRROR";                                          
+                                    }
+                                    valores.set(i, v);
+                                    
+                               
+                                    
+                                }
+                                else{
+                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    return "ERRROR";                                      
+                                }
+                            }                            
+                            else if (tipoValor == Columna.CHAR_TYPE){
+                                 if(tipoColumna == Columna.INT_TYPE){
+                                    String v = valores.get(i).toString();
+                                    try{
+                                        int v1 = Integer.parseInt(v);
+                                        
+                                        valores.set(i, v1);
+                                    }
+                                    
+                                    catch(Exception e){
+                                        Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                        return "ERRROR";                                      
+                                    }
+                                                                   
+                                 }
+                                 else if(tipoColumna == Columna.FLOAT_TYPE){
+                                    String v = valores.get(i).toString();
+                                    try{
+                                        float v1 = Float.parseFloat(v);
+                                        valores.set(i, v1);
+                                    }
+                                    
+                                    catch(Exception e){
+                                        Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                        return "ERRROR";                                      
+                                    }                              
+                                 }
+                                 else if (tipoColumna == Columna.DATE_TYPE){     
+                                    try{
+                                        LocalDate d = LocalDate.parse(valores.get(i).toString());
+                                        valores.set(i, d);
+                                    }
+                                    catch(Exception e){
+                                        Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                        return "ERRROR";                                       
+                                    }                             
+                                 }
+                                 else{
+                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    return "ERRROR";                                   
+                                 }
+                            }
+                        
+                        }
+                        else{
+                            valores.set(i, valores.get(i));
+                        }
+      
+                        
+                    }
+                    // Si no hubieron errores agregamos los valores a la nueva tupla
+                    for(int i =0;i<valores.size();i++){
+                        nuevaTupla.valores.set(i, valores.get(i));
+                    
+                    }
+                    
+                    
+                    
+                    // Comprobamos las constraints de los valores 
+                    Tabla tempTabla = new Tabla();
+                    tempTabla.name = t.name;
+                    tempTabla.columnas.addAll(t.columnas);
+                    Loader.iterador = new IteradorTabla(tempTabla,0);
+                    for(Constraint cons: t.constraints){
+                        if(cons.tipo==Constraint.PK){
+                            //Revisamos que las columnas de la constraint no sean nulas
+                            for(Columna c:cons.colsPkeys){
+                                int iValor = t.getIndiceColumna(c.nombre);
+                                Object v = nuevaTupla.valores.get(iValor);
+                                if(v==null){
+                                     Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+">> no puede tener valo nulo por la constraint <<"+cons.nombre+">>");
+                                     return "ERRROR";                                     
+                                }
+                                //Revisamos si ya existe el valor en las tuplas de la tabla
+                                boolean yaExiste = t.contieneValor(v, iValor);
+                                if(yaExiste){
+                                     Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+"> Debe tener valor unico por la PK: <<"+cons.nombre+">>");
+                                     return "ERRROR";                                         
+                                }
+                            
+                            }
+                        
+                        }
+                        else if (cons.tipo==Constraint.FK){
+                            //Cargamos la tabla foranea 
+                            Tabla foreignTable = Tabla.loadTable(cons.foreignTable);
+                            // Obtenemos los valores de las columnas con la llave foranea en la tupla a insertar
+                            ArrayList<Object> valoresInsert = new ArrayList<Object>();
+                            for(Columna c: cons.localFkeys){
+                                int indice = t.getIndiceColumna(c.nombre);
+                                Object valor = nuevaTupla.valores.get(indice);
+                                valoresInsert.add(valor);
+                            
+                            }
+                            
+                            //Recorremos cada columna referenciada y verificamos que el valor de la columna exista o sea nulo
+                            int i =0;
+                            ArrayList<Integer> indices = new ArrayList<Integer>();
+                            for(Columna c:cons.refKeys){
+                                //Obtenemos el indice de la columna de referencia
+                                int indice = foreignTable.getIndiceColumna(c.nombre);
+                                indices.add(indice);
+                                Object valorBusqueda = valoresInsert.get(i);
+                                if(valorBusqueda == null){ continue;} //Si es nulo continuamos
+                                i++;
+                            }
+                            boolean encontrado = foreignTable.contieneValor(valoresInsert, indices);
+                            if(!encontrado){
+                                String s="";
+                                 for(Object t2: valoresInsert){
+                                     if(t2!=null){
+                                         s+=t2.toString()+", ";
+                                     }
+                                     else{s+="null, ";}
+                                 
+                                 }
+                                 Frame.jTextArea2.setText("ERROR: La llave <<"+s+">> no existe en la tabla de referencia: "+foreignTable.name);
+                                 return "ERRROR";                                       
+                            }                           
+                        }
+                        else if(cons.tipo==Constraint.CHECK){
+                            //Creamos tabla temporal con contructor que no guarda archivo serializado
+                            Tabla temp = new Tabla();
+                            temp.name="temp";
+                            temp.columnas=t.columnas;
+                            
+                            temp.tuplas.add(nuevaTupla);
+                            Loader.iterador = new IteradorTabla(temp,0);
+                            //Obtenemos la expresion de la constraint
+                            Expression e = cons.expr;
+                            try {
+                                //No hacemos ningun for porque solo queremos evaluar la tupla que vamos a insertar
+                                if(!e.isTrue()){
+                                    Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
+                                    return "ERRROR";
+                                    
+                                }
+                            } catch (Exception ex) {
+                                Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +" no cumple con la restriccion ' "+cons.exprText+" ' .");
+                                return "ERROR";
+                            }
+                            
+                        
+                        }
+                        
+                    
+                    }
+                //Guardamos la tabla y la metaData
+                t.tuplas.add(nuevaTupla);
+                DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
+                TablaMetaData tm = bd.findTable(t.name);
+                tm.cantRegistros++;
+                t.guardarTabla();
+                DBMS.metaData.writeMetadata();
+                DBMS.guardar();     
+                Frame.jTextArea2.setText("Insert terminado.");
+                return true;
+	}
+	@Override
+	public Object visitVal(SQLParser.ValContext ctx) {
+		if(ctx.CHAR_VAL()!=null){
+                    return Columna.CHAR_TYPE;
+                
+                }
+                else if(ctx.NUM()!= null){
+                    return Columna.INT_TYPE;
+                
+                }
+                else if (ctx.DATE_VAL()!=null){
+                    return Columna.DATE_TYPE;
+                
+                }
+                else if (ctx.FLOAT_VAL()!=null){
+                    return Columna.FLOAT_TYPE;
+                }
+                else{return "ERROR";}
 	}
 
-	@Override
-	public Object visitDeleteStmt(SQLParser.DeleteStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitDeleteStmt(ctx);
-	}
 
 	@Override
 	public Object visitUpdateStmt(SQLParser.UpdateStmtContext ctx) {
@@ -860,6 +1226,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             String [] nombres = null;
             int indiceDosPuntos = 0;
             ArrayList<String> nombresDB = new ArrayList<String>();
+            
             //3. Leer el archivo de metadata 
             try{
                 reader = new BufferedReader(new FileReader(directorio));
@@ -876,6 +1243,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     
                 }
             }
+            
             catch(Exception e)
             {
                 e.printStackTrace();
@@ -1017,11 +1385,7 @@ public class Loader extends SQLBaseVisitor<Object>{
 		return super.visitColumn(ctx);
 	}
 
-	@Override
-	public Object visitVal(SQLParser.ValContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitVal(ctx);
-	}
+
 
 	@Override
 	public Object visitDdlQuery(SQLParser.DdlQueryContext ctx) {

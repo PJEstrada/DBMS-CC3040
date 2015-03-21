@@ -39,6 +39,7 @@ ORDER:'ORDER';
 BY: 'BY';
 ASC: 'ASC';
 DESC: 'DESC';
+VALUES: 'VALUES';
 fragment LETTER: ('a'..'z'|'A'..'Z') ;
 fragment DIGIT : '0'..'9' ;
 
@@ -46,7 +47,7 @@ WS : [ \t\r\n\f]+  ->channel(HIDDEN);
 DATE_VAL: '\''DIGIT DIGIT DIGIT DIGIT '-' DIGIT DIGIT '-' DIGIT DIGIT'\'' ;
 NUM: DIGIT(DIGIT)* ;
 ID : LETTER( LETTER | DIGIT | '_' | '-') * ;
-CHAR_VAL: '\'' ~('\r' | '\n' | '"')* '\'' ;
+CHAR_VAL: '\'' ~('\r' | '\n' | '\'')* '\'' ;
 FLOAT_VAL: NUM'.'NUM;
 /*---------------------------------------------------------- */
 
@@ -124,11 +125,12 @@ rel_op : '<' | '>' | '<=' | '>=' | '=' | '<>' ;
 
 /* END ----- DDL QUERIES----- */
 
-dmlQuery: insertStmt | updateStmt | deleteStmt| selectStmt; 
+dmlQuery: multiInsert | updateStmt | deleteStmt| selectStmt; 
 
-insertStmt: INSERT INTO table (columnList)? valueList ;
-	columnList:  '('  ID (','ID)* ')';
-	valueList: val(val)* ;
+multiInsert: (insertStmt)(';' insertStmt)* ;
+insertStmt: INSERT INTO table (columnList)? VALUES valueList ;
+	columnList:  '('  colName (','colName)* ')';
+	valueList: '(' val(',' val)* ')' ;
 	val: NUM | FLOAT_VAL | DATE_VAL | CHAR_VAL ;
 
 updateStmt: UPDATE table SET columnsUpdate '=' val (',' columnsUpdate '=' val)* (WHERE expression)? ;

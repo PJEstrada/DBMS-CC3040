@@ -5,7 +5,7 @@ CREATE TABLE asignacion
   universidadid INT,
   materia CHAR(255),
   nota INT,
-  CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial),
+  CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial,estudianteid),
   CONSTRAINT checkNota CHECK ( 7>8 AND (nota<100) )
 )
 

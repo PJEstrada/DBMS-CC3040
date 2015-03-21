@@ -19,6 +19,20 @@ public class Tupla implements Serializable {
     
     public Tupla(ArrayList<Object> vals, Tabla t){
         this.tabla=t;
+        valores = vals;
         //Agregamos el valor de cada columna uno por uno para verificar constraints y cualquier otra condicion
+    }
+    
+    public String toString(){
+        String s = "";
+        for(Object v: valores){
+            if(v == null){
+                s+="NULL , ";
+            }
+            else{
+                s+= v.toString()+" ,";
+            }
+        }
+        return s;
     }
 }

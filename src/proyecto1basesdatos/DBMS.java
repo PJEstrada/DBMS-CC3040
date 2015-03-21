@@ -12,6 +12,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,7 +33,6 @@ public class DBMS {
     
     
     public DBMS(){
-        
         /* Test para tiempo serializacion / deserializacion*/
       /* int a =0;
         ArrayList<Tupla> ts = new ArrayList<Tupla>();
@@ -73,7 +74,7 @@ public class DBMS {
         
         /*Para debugging cuando alteramos tablas*/
         DBMS.currentDB="test";
-        Tabla t = Tabla.loadTable("films");
+        Tabla t = Tabla.loadTable("asignacion");
         
         String currentDir = System.getProperty("user.dir");
         File f = new File(currentDir+"/DBMS/master.dat");
