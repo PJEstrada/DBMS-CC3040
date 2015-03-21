@@ -1001,6 +1001,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             if(existsDb)
             {
                 DBMS.currentDB = dbname;
+                Frame.jTextArea2.setText("AVISO: Se esta usando la base de datos llamada: "+dbname);
                 System.out.println("Si existe la base de datos");
             }
             else
