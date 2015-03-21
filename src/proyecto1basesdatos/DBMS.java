@@ -72,7 +72,7 @@ public class DBMS {
         System.out.print(a);*/
         
         /*Para debugging cuando alteramos tablas*/
-        DBMS.currentDB="test";
+        DBMS.currentDB="testN";
         Tabla t = Tabla.loadTable("films");
         
         String currentDir = System.getProperty("user.dir");
