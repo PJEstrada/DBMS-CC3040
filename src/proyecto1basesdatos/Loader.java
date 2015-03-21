@@ -1298,6 +1298,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             d.tablas.remove(t);
             d.writeMetadata();
             DBMS.metaData.writeMetadata();
+            DBMS.guardar();
             //se elimnan los serealizados
             String currentDir = System.getProperty("user.dir");
             File f1  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+"_constraints.ser");
