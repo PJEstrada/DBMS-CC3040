@@ -22,7 +22,7 @@ import java.util.ArrayList;
 public class DBMetaData implements Serializable {
     private static final long serialVersionUID = 6529685098267757693L;
     String nombreDB;
-    ArrayList<TablaMetaData> tablas;
+    public ArrayList<TablaMetaData> tablas;
      
     public DBMetaData(String nombreDB){
         this.nombreDB=nombreDB;

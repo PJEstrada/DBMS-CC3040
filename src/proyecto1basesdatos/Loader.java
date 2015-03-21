@@ -1,8 +1,13 @@
 package proyecto1basesdatos;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1269,8 +1274,40 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitDropTableStmt(SQLParser.DropTableStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitDropTableStmt(ctx);
+            /*Borrar implica: 
+            1. Ver que base de datos estoy usando
+            2. Buscar la tabla si existe
+            3. Borrar la tabla en la metadata
+            4. Borrar en el archivo serealizable - deleteAllFilesWithName*/
+            String dbActual = DBMS.currentDB;
+            String tablename = ctx.ID().getText();
+            //Verificamos si hay una DB en uso
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            }
+            //se toma la base de datos
+            DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+            TablaMetaData t = d.findTable(tablename);
+            //Se ve que existan el objeto
+            if(t == null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna tabla con el nombre dado.");
+                return "ERROR";
+            }
+            //Se borra la tabla
+            d.tablas.remove(t);
+            d.writeMetadata();
+            DBMS.metaData.writeMetadata();
+            //se elimnan los serealizados
+            String currentDir = System.getProperty("user.dir");
+            File f1  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+"_constraints.ser");
+            File f2  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+"_cols.ser");
+            File f3  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+".ser");
+            f1.delete();
+            f2.delete();
+            f3.delete();
+            Frame.jTextArea2.setText("Tabla '"+tablename+ "' Borrada existosamente.");
+            return super.visitDropTableStmt(ctx);
 	}
 
 	@Override
@@ -1369,6 +1406,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             if(existsDb)
             {
                 DBMS.currentDB = dbname;
+                Frame.jTextArea2.setText("AVISO: Se esta usando la base de datos llamada: "+dbname);
                 System.out.println("Si existe la base de datos");
             }
             else

@@ -75,7 +75,8 @@ public class DBMS {
         /*Para debugging cuando alteramos tablas*/
         DBMS.currentDB="test";
         Tabla t = Tabla.loadTable("asignacion");
-        
+
+       
         String currentDir = System.getProperty("user.dir");
         File f = new File(currentDir+"/DBMS/master.dat");
         // Buscamos el archivo. Si ya existe solo lo cargamos y lo asignamos a la variable estatica

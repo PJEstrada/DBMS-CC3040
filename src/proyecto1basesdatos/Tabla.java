@@ -240,7 +240,7 @@ public class Tabla implements Serializable {
     
     }
     
-    private void deleteOldFilesWithName(String oldName){
+    public void deleteOldFilesWithName(String oldName){
         String currentDir = System.getProperty("user.dir");
         File directorio  = new File(currentDir+"/DBMS/"+DBMS.currentDB+"/"+oldName+".ser");
         boolean existe = directorio.exists();
