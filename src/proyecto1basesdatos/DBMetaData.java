@@ -30,6 +30,14 @@ public class DBMetaData implements Serializable {
     
     }
      
+    public ArrayList<String> allTables()
+    {
+        ArrayList<String> toReturn = new ArrayList<String>();
+        for(TablaMetaData t: this.tablas){
+            toReturn.add(t.nombre);
+        }
+        return toReturn;
+    }
     @Override
     public String toString(){
         String s ="Base de Datos: "+nombreDB+"\n\r";
