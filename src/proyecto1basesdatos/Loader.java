@@ -232,31 +232,24 @@ public class Loader extends SQLBaseVisitor<Object>{
                    for(ParseTree n: ctx.colConstraint()){
                        Object c = visit(n);
                        if(!(c instanceof Constraint)){
-                           return "ERROR";
-                       
+                           return "ERROR"; 
                        }
                        else{
                            Constraint con =(Constraint)c;
                            cons.add(con);
                        }
-                       
                    } 
                     //Creamos la tabla y la serializamos 
                     t1 = new Tabla(name,cols,cons);
                     Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
                     return t1;                    
-
                 }
                 else{
                     //Creamos la tabla y la serializamos 
                     t1 = new Tabla(name,cols);
                     Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
                     return t1;
-
-
-                } 
-                
-              
+                }  
             }
 	}
 
@@ -475,8 +468,9 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitShowColumnsStmt(SQLParser.ShowColumnsStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitShowColumnsStmt(ctx);
+            String nameDB = ctx.ID().getText();
+            
+            return super.visitShowColumnsStmt(ctx);
 	}
 
 	@Override
@@ -938,9 +932,13 @@ public class Loader extends SQLBaseVisitor<Object>{
             File f1  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+"_constraints.ser");
             File f2  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+"_cols.ser");
             File f3  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+".ser");
-            f1.delete();
-            f2.delete();
-            f3.delete();
+            if(f1.exists() && f2.exists() && f3.exists())
+            {
+                System.gc();
+                f1.delete();
+                f2.delete();
+                f3.delete();
+            }
             Frame.jTextArea2.setText("Tabla '"+tablename+ "' Borrada existosamente.");
             return super.visitDropTableStmt(ctx);
 	}
