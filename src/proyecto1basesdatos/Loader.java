@@ -485,6 +485,10 @@ public class Loader extends SQLBaseVisitor<Object>{
             //Se carga la metadata de la tabla que se desea mostrar
             DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
             TablaMetaData tm=d.findTable(nameTable);
+            if(tm == null){
+                Frame.jTextArea2.setText("ERROR: La tabla  "+nameTable+" no existe dentro de "+DBMS.currentDB);
+                return "ERROR";   
+            }
             ArrayList<String> titulos1 = new ArrayList<String>();
             ArrayList<String> titulos2 = new ArrayList<String>();
             ArrayList<ArrayList<String>> filas1 = new ArrayList();
