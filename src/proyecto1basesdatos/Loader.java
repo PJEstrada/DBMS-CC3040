@@ -1320,6 +1320,14 @@ public class Loader extends SQLBaseVisitor<Object>{
             4. Borrar en el archivo serealizable - deleteAllFilesWithName*/
             String dbActual = DBMS.currentDB;
             String tablename = ctx.ID().getText();
+            //Se revisa si existe una dependecia con esta tabla antes de ser eliminada
+            ArrayList<Constraint> constreintsHere = getAllForeignConstraints();
+            for(Constraint c: constreintsHere){
+                if(c.foreignTable.equals(tablename)){
+                    Frame.jTextArea2.setText("ERROR: Existe una referencia a la tabla "+tablename);
+                    return "ERROR";
+                }
+            }
             //Verificamos si hay una DB en uso
             if(DBMS.currentDB==null){
                 Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
