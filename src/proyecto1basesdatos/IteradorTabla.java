@@ -33,4 +33,8 @@ public class IteradorTabla {
     
     }
     
+    public void siguiente(){
+        indiceActual++;
+    }
+    
 }

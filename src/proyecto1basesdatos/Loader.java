@@ -47,6 +47,18 @@ public class Loader extends SQLBaseVisitor<Object>{
         public void error(String s){
             Frame.jTextArea2.setText(s);
         }
+        public ArrayList<Constraint> obtenerReferenciasDe(String tableName){
+            ArrayList<Constraint> res = new ArrayList<Constraint>();
+            ArrayList<Constraint> cons = getAllForeignConstraints();
+            for(Constraint c: cons){
+                if(c.foreignTable.equalsIgnoreCase(tableName)){
+                    res.add(c);
+                }
+            }
+            return res;
+        
+        
+        }
         //Metodo para encontrar una columna dado un string y una arreglo de columnas. Se utiliza para verificar el primary key de una tabla.
         public Columna findCol(String name, ArrayList<Columna> cols){
             for(Columna c: cols){
@@ -1255,8 +1267,282 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitUpdateStmt(SQLParser.UpdateStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitUpdateStmt(ctx);
+            String tableName = ctx.table().getText();
+            Tabla t = Tabla.loadTable(tableName);
+
+            if(t==null){
+                Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                return "ERROR";
+            } 
+            this.availableCols = new ArrayList<Columna>();
+            this.availableCols.addAll(t.columnas);            
+            ArrayList<Columna> columnasEspecificadas= new ArrayList<Columna>();
+            ArrayList<Object> valores = new ArrayList<Object>();
+            //Obtenemos las columnas que se especificaron
+            int i =0;
+            for(ParseTree n: ctx.columnsUpdate()){
+                String colName = n.getText();
+                Columna existe = this.findCol(colName, t.columnas);
+                if(existe == null){
+                    Frame.jTextArea2.setText("ERROR: No se encuentra la Columna: <<"+colName+">> en la tabla: "+tableName);
+                    return "ERROR";                           
+                }
+                 //Verificamos los tipos del valor y la columna actual
+                Object tipoValor1 = visit(ctx.val(i));
+                if(tipoValor1 instanceof String){
+                    return "ERROR";
+                }
+                int tipoValor = (Integer) tipoValor1;
+                int tipoColumna= existe.tipo;
+                // Si no son iguales... intentamos hacer conversion de tipos
+                if(tipoValor != tipoColumna){                           
+                    if(tipoValor == Columna.INT_TYPE){
+                        if(tipoColumna== Columna.CHAR_TYPE){
+                            //Convertimos el entero a un char
+                            String v = valores.get(i).toString();
+                            //Verificamos el tamanio del string
+                            if(v.length()>t.columnas.get(i).size){
+                                Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                return "ERRROR";                                          
+                            }                                    
+
+                            valores.set(i, v);
+                        }
+                        else if (tipoColumna == Columna.FLOAT_TYPE){
+                            float v = Float.valueOf(valores.get(i).toString());
+                            valores.set(i, v);
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                            return "ERRROR";
+                        }
+                    }
+                    else if (tipoValor == Columna.FLOAT_TYPE){
+                        if(tipoColumna==Columna.INT_TYPE){
+                            float v1 = Float.valueOf(valores.get(i).toString());
+                            int v = (int)v1;  //Convertimos el float al int trucando decimales
+                            valores.set(i, v);
+
+
+                        }
+                        else if (tipoColumna == Columna.CHAR_TYPE){
+                            String v = valores.get(i).toString();
+                            //Verificamos el tamanio del string
+                            if(v.length()>t.columnas.get(i).size){
+                                Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                return "ERRROR";                                          
+                            }                                    
+
+                            valores.set(i, v);
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                            return "ERRROR";                                
+                        }
+
+                    }
+                    else if (tipoValor == Columna.DATE_TYPE){
+                        if(tipoColumna == Columna.CHAR_TYPE){
+                            String v = valores.get(i).toString();
+                            //Verificamos el tamanio del string
+                            if(v.length()>t.columnas.get(i).size){
+                                Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                return "ERRROR";                                          
+                            }
+                            valores.set(i, v);
+
+
+
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                            return "ERRROR";                                      
+                        }
+                    }                            
+                    else if (tipoValor == Columna.CHAR_TYPE){
+                         if(tipoColumna == Columna.INT_TYPE){
+                            String v = valores.get(i).toString();
+                            try{
+                                int v1 = Integer.parseInt(v);
+
+                                valores.set(i, v1);
+                            }
+
+                            catch(Exception e){
+                                Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                return "ERRROR";                                      
+                            }
+
+                         }
+                         else if(tipoColumna == Columna.FLOAT_TYPE){
+                            String v = valores.get(i).toString();
+                            try{
+                                float v1 = Float.parseFloat(v);
+                                valores.set(i, v1);
+                            }
+
+                            catch(Exception e){
+                                Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                return "ERRROR";                                      
+                            }                              
+                         }
+                         else if (tipoColumna == Columna.DATE_TYPE){     
+                            try{
+                                LocalDate d = LocalDate.parse(valores.get(i).toString());
+                                valores.set(i, d);
+                            }
+                            catch(Exception e){
+                                Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                return "ERRROR";                                       
+                            }                             
+                         }
+                         else{
+                            Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                            return "ERRROR";                                   
+                         }
+                    }
+
+                }
+                else{
+                    valores.set(i, valores.get(i));
+                }                
+                
+                columnasEspecificadas.add(existe);
+                i++;
+
+            }
+            ArrayList<Integer> indicesColumnas = new ArrayList<Integer>();
+            //Obtenemos los indices de las columnas especificadas en la tabla
+            for(int j =0;i<columnasEspecificadas.size();j++){
+                int indice = t.getIndiceColumna(columnasEspecificadas.get(j).nombre);
+                indicesColumnas.add(indice);
+            }
+            
+            //Obtenemos la expresion WHERE
+            Object where1 = visit(ctx.expression());
+            if(where1 instanceof String){
+                return "ERROR";
+            }
+            Expression where = (Expression) where1;
+            
+            //Creamos el iterador para la tabla que se creo 
+            Loader.iterador = new IteradorTabla(t,0);  
+            //Recorremos cada una de las tuplas en el iterador y verificamos la condicion. 
+            int numModificadas =0;
+            for(int j =0;j<Loader.iterador.tabla.tuplas.size();j++){
+                Tupla tuplaActual = Loader.iterador.tabla.tuplas.get(j);
+                try {
+                    if(where.isTrue()){
+                       numModificadas++;
+                       t.actualizarTupla(valores, indicesColumnas, j);
+                     
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                Loader.iterador.siguiente(); //Movemos el iterador a la siguiente tupla
+            }
+            
+            //Verificamos contraints en cada una de las tuplas de la tabla
+            for(Tupla currentTupla: t.tuplas){
+                
+                for(Constraint cons: t.constraints){
+                    if(cons.tipo== Constraint.PK){
+                        ArrayList<Object> checkValues = new ArrayList<Object>();
+                        ArrayList<Integer> indexChecks = new ArrayList<Integer>();
+                        for(Columna c: cons.colsPkeys){
+                            int indice = t.getIndiceColumna(c.nombre);
+                            Object val=currentTupla.valores.get(indice);
+                            checkValues.add(val);
+                            indexChecks.add(indice);
+                        }
+                        boolean duplicada = t.estaDuplicado(checkValues, indexChecks);
+                        if(duplicada){
+                            Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque crea valores duplicados de una llave primaria");
+                            return "ERROR";
+                        }
+                    
+                    }
+                    else if (cons.tipo == Constraint.FK){
+                        Tabla foreign = Tabla.loadTable(cons.foreignTable);
+                        //Obtenemos los valores de la tupla actual 
+                        ArrayList<Object> checkValues = new ArrayList<Object>();
+                        for(Columna local: cons.localFkeys){
+                            int indice = t.getIndiceColumna(local.nombre);
+                            Object v = currentTupla.valores.get(indice);
+                            checkValues.add(v);
+                        }
+                        //Obtenemos los indices de la tupla foranea para buscar los valores de la tupla local
+                        ArrayList<Integer> indexValues = new ArrayList<Integer>();
+                        for ( Columna foreignCol: cons.refKeys){
+                            int index = foreign.getIndiceColumna(foreignCol.nombre);
+                            indexValues.add(index);
+                        
+                        }
+                        boolean contieneValores = foreign.contieneValor(checkValues, indexValues);
+                        if(!contieneValores){
+                            Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque no se encuentra el valor de la llave foranea");
+                            return "ERROR";                            
+                        
+                        }
+                    }
+                    else if(cons.tipo == Constraint.CHECK){
+                        Tabla temp = new Tabla();
+                        temp.name = t.name;
+                        temp.columnas.addAll(t.columnas);
+                        temp.tuplas.add(currentTupla);
+                        Loader.iterador = new IteradorTabla(temp,0);
+                        try {
+                            if(!cons.expr.isTrue()){
+                                Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">>.");
+                                return "ERROR";                                    
+                            }
+                        } catch (Exception ex) {
+                            Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                       
+            }
+            //Obtenemos referencias a la tabla 
+            ArrayList<Constraint> referencias = obtenerReferenciasDe(t.name);
+           
+            for(Constraint refCons: referencias){
+                //Para cada referencias primero cargamos la tabla local de la referencia
+                Tabla localTable = Tabla.loadTable(refCons.tabla);
+               //Luego, para cada tupla de la tabla obtenemos las columnas locales y sus valores con localfkey
+                for(Tupla tupla:localTable.tuplas){
+                    ArrayList<Integer> indexBuscar = new ArrayList<Integer>();
+                    ArrayList<Integer> indexT = new ArrayList<Integer>();
+                    ArrayList<Object> valoresActuales = new ArrayList<Object>(); 
+                    for(Columna col: refCons.localFkeys){
+                        int index = localTable.getIndiceColumna(localTable.name);
+                        indexBuscar.add(index);
+                    }
+                    for(int iv: indexBuscar){
+                        valoresActuales.add(tupla.valores.get(iv));
+                    
+                    }
+                    for(Columna c2: refCons.refKeys){
+                        int index2 = t.getIndiceColumna(c2.nombre);
+                        indexT.add(index2);
+                    
+                    }
+                      // Revisamos si los valores de la tupla actual existen en los valores de la tabla de referencia (i.e la mencionada en UPDATE tableName) 
+                    boolean encontrada = t.contieneValor(valoresActuales, indexT);
+                    if(encontrada==false){
+                        Frame.jTextArea2.setText("ERROR: La restriccion <<"+refCons.nombre+">> de la tabla <<"+localTable.name+">>esta siendo violdada con la actualizacion porque se cambiaron.");
+                        return "ERROR";
+                    }
+
+                }
+
+            }
+            //Guardamos la tablas
+            t.guardarTabla();
+            Frame.jTextArea2.setText("Insert Finalizado. Se modificaron: "+numModificadas+" registros");
+            return true;
+            
 	}
 
 	@Override
