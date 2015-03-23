@@ -189,7 +189,7 @@ public class Tabla implements Serializable {
             fileOut = new FileOutputStream(currentDir+"/DBMS/"+DBMS.currentDB+"/"+name+".ser");
             ObjectOutputStream out;                 
             out = new ObjectOutputStream(fileOut);
-            out.writeObject(this);       
+            out.writeObject(this);  
             out.close();
         } catch (Exception ex) {
             Logger.getLogger(Tabla.class.getName()).log(Level.SEVERE, null, ex);
@@ -199,7 +199,7 @@ public class Tabla implements Serializable {
             fileOut = new FileOutputStream(currentDir+"/DBMS/"+DBMS.currentDB+"/"+name+"_cols.ser");
             ObjectOutputStream out;                 
             out = new ObjectOutputStream(fileOut);
-            out.writeObject(this.columnas);    
+            out.writeObject(this.columnas);      
             out.close();
         } catch (Exception ex) {
             Logger.getLogger(Tabla.class.getName()).log(Level.SEVERE, null, ex);
@@ -360,13 +360,11 @@ public class Tabla implements Serializable {
                in.close();
                fileIn.close(); 
                return ret;
-               
             }catch(Exception i)
             {
                i.printStackTrace();
                return null;         
-            }
-
+            }            
         
         }  
         else{
