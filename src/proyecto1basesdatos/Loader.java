@@ -1144,7 +1144,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                                 int iValor = t.getIndiceColumna(c.nombre);
                                 Object v = nuevaTupla.valores.get(iValor);
                                 if(v==null){
-                                     Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+">> no puede tener valo nulo por la constraint <<"+cons.nombre+">>");
+                                     Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+">> no puede tener valor nulo por la constraint <<"+cons.nombre+">>");
                                      return "ERRROR";                                     
                                 }
                                 //Revisamos si ya existe el valor en las tuplas de la tabla
@@ -1258,7 +1258,65 @@ public class Loader extends SQLBaseVisitor<Object>{
 		// TODO Auto-generated method stub
 		return super.visitUpdateStmt(ctx);
 	}
-
+        @Override
+        public Object visitDeleteStmt(SQLParser.DeleteStmtContext ctx){
+            //Para cuando no tiene where
+            String tablename = ctx.table().getText();
+            Tabla t = Tabla.loadTable(tablename);
+            Loader.iterador = new IteradorTabla(t,0);
+            int numDeleted = 0; 
+            if(ctx.children.get(2).getChildCount() == 3){
+                for(Loader.iterador.indiceActual = 0; Loader.iterador.indiceActual< Loader.iterador.tabla.tuplas.size(); Loader.iterador.indiceActual++){
+                    //Se revisa que no haya referencia a esta columna antes de eliminar
+                    if(true){
+                        Loader.iterador.deleteValue();
+                        numDeleted++;
+                    }
+                    else{
+                            Frame.jTextArea2.append("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                            return "Error";
+                    }
+                }
+                t.guardarTabla();
+                DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+                TablaMetaData t1 = d.findTable(tablename);
+                t1.cantRegistros = 0;
+                DBMS.metaData.writeMetadata();
+                DBMS.guardar();
+            }
+            //para cuando tiene where
+            else if(ctx.children.get(2).getChildCount() == 5){
+                for(Loader.iterador.indiceActual = 0; Loader.iterador.indiceActual< Loader.iterador.tabla.tuplas.size(); Loader.iterador.indiceActual++){
+                    //booleana para determinar si se cumple la condicion para cada tupla
+                    Object isTrueHere = ctx.expression();
+                    //Si es un string es un error 
+                    if(isTrueHere instanceof String){
+                        return "ERROR";
+                    }
+                    //Si no es string se castea
+                    boolean pass = (boolean)isTrueHere;
+                    //Se revisa que no haya referencia a esta columna antes de eliminar
+                    if(pass){
+                        if(true){
+                            Loader.iterador.deleteValue();
+                            numDeleted++;
+                        }
+                        else{
+                            Frame.jTextArea2.append("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                            return "Error";
+                        }
+                    }
+                }
+                t.guardarTabla();
+                DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+                TablaMetaData t1 = d.findTable(tablename);
+                t1.cantRegistros = t1.cantRegistros - numDeleted;
+                DBMS.metaData.writeMetadata();
+                DBMS.guardar();
+            }
+            Frame.jTextArea2.append("\nAVISO: Se han eliminado "+numDeleted +" registros.");
+            return super. visitDeleteStmt(ctx);
+        }
 	@Override
 	public Object visitShowDbStmt(SQLParser.ShowDbStmtContext ctx) {
             //1. Especificar el directorio donde se debe ir a buscar el archivo de metadata

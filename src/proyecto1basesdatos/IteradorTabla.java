@@ -33,4 +33,9 @@ public class IteradorTabla {
     
     }
     
+    //Metodo que elimina un elemento de la tabla segun el indice
+    public void deleteValue(){
+        tabla.tuplas.remove(indiceActual);
+    }
+    
 }
