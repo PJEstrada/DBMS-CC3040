@@ -20,7 +20,7 @@ public class Term implements Serializable {
     public static final int CHAR_TYPE=2;
     
     
-    Object value;
+    private Object value;
     boolean isColumn;
     int type;
     Columna column;
@@ -63,5 +63,26 @@ public class Term implements Serializable {
     Si es una columna. revisa el iterador de tabla y obtiene el valor actual correspondiente a la columna de la tupla
     en la que se encuentre el iterador
     */
-   
+    public Object getValue(){
+        if(isColumn){
+            //Obtenemos la tabla del iterador
+            Tabla t = Loader.iterador.tabla;
+            int indice = t.getIndiceColumna(column.nombre);
+            Object val =Loader.iterador.getValueFromColumn(indice);
+            return val;
+            
+            /*
+            Nota: Si debemos agregar nombrar columnas con su tabla (Ej:  tablaA.columna3 ) Debemos agregar a la condicion que se verifique que la columna 
+                  corresponde a la tabla que se coloco antes del punto en el metodo getIndiceColumna y se debera agregar un atributo nombreTabla de tipo String a esta 
+                  clase.
+            */
+        }
+        else{
+        
+            return value;
+        }
+    
+    }
+    
+    
 }

@@ -17,6 +17,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.Writer;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +37,11 @@ public class Tabla implements Serializable {
     ArrayList<Constraint> constraints;
     ArrayList<Tupla> tuplas;
     
-    public Tabla(){}
+    public Tabla(){
+        columnas = new ArrayList<Columna>();
+        constraints = new ArrayList<Constraint>();
+        tuplas = new ArrayList<Tupla>();
+    }
     
     public Tabla(String n, ArrayList<Columna> cols){
         this.name = n;
@@ -62,7 +68,119 @@ public class Tabla implements Serializable {
 
 
     }
+    public boolean contieneValor(Object valor, int iColumna){
+        for(Tupla t:this.tuplas){
+            Object v2 = t.valores.get(iColumna);
+            if(v2 instanceof Integer){
+               int v2c = (Integer) v2;
+               int valorc = (Integer) valor;
+               if(v2c==valorc){
+                   return true;
+               }
+            }
+            else if( v2 instanceof Float){
+                if(v2 instanceof Float){
+                    float v2c = (Float) v2;
+                    float valorc = (Float) valor;
+                    if(v2c == valorc){
+                        return true;
+                    }
+                
+                }
+            }
+            
+            else if (v2 instanceof String){
+                String v2c = (String) v2.toString();
+                String valorc = valor.toString();
+                if(v2c.equals(valorc)){
+                    return true;
+                }
+                
+            }
+            
+            else if(v2 instanceof LocalDateTime){
+                LocalDate v2c = (LocalDate) v2;
+                LocalDate valorc = (LocalDate) valor;
+                if(v2c.equals(valorc)){
+                    return true;
+                }
+            
+            }
+        }
+        return false;
     
+    }
+    public boolean contieneValor(ArrayList<Object> valores, ArrayList<Integer> iColumnas){       
+        for(Tupla t:this.tuplas){
+            boolean result = true;
+            for(int i =0;i<valores.size();i++){             
+                Object v1 = valores.get(i);
+                int iColumna = iColumnas.get(i);
+                Object v2 = t.valores.get(iColumna);
+                if(v2 instanceof Integer){
+                    int v2c = (Integer) v2;
+                    int valorc = (Integer) v1;
+                    if(v2c!=valorc){
+                        result = false;
+                        break;
+                    }
+                 }
+                 else if( v2 instanceof Float){
+                     if(v2 instanceof Float){
+                         float v2c = (Float) v2;
+                         float valorc = (Float) v1;
+                         if(v2c != valorc){
+                             result = false;
+                             break;
+                         }
+
+                     }
+                 }
+
+                 else if (v2 instanceof String){
+                     String v2c = (String) v2.toString();
+                     String valorc = v1.toString();
+                     if(!v2c.equals(valorc)){
+                         result = false;
+                         break;
+                     }
+
+                 }
+
+                 else if(v2 instanceof LocalDateTime){
+                     LocalDate v2c = (LocalDate) v2;
+                     LocalDate valorc = (LocalDate) v1;
+                     if(!v2c.equals(valorc)){
+                         result = false;
+                         break;
+                     }
+
+                 }           
+            }
+            if(result){
+                return true;
+            }
+            
+ 
+        }
+        return false;
+    
+    }    
+    public int getIndiceColumna(String colName){
+        int i =0;
+        boolean f =false;
+        for(Columna c: this.columnas){
+            if(c.nombre.equalsIgnoreCase(colName)){
+                f = true;
+                break;
+            }
+            i++;
+        
+        }
+        if(f){return i;}
+        else{return -1;}
+    
+    }
     public void guardarTabla(){
         //Serializamos la tabla
         String currentDir = System.getProperty("user.dir");

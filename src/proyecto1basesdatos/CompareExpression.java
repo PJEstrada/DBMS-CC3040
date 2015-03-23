@@ -28,202 +28,398 @@ public class CompareExpression extends Expression implements Serializable{
         
         switch(op){
             case "=":
-                if(left.value instanceof Integer && right.value instanceof Integer){
-                    int il = (int)left.value;
-                    int ir = (int)right.value;
+                if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
+                    int il = (int)left.getValue();
+                    int ir = (int)right.getValue();
                     return il==ir;
                     
                 }
                 
-                else if(left.value instanceof String && right.value instanceof String){
-                    String l = (String) left.value;
-                    String r = (String) right.value;
+                else if(left.getValue() instanceof String && right.getValue() instanceof String){
+                    String l = (String) left.getValue();
+                    String r = (String) right.getValue();
                     return left.equals(right);
                 }
                 
-                else if(left.value instanceof Float || right.value instanceof Float){
-                    float l = (float) left.value;
-                    float r = (float) right.value;
+                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
+                    float l = (float) left.getValue();
+                    float r = (float) right.getValue();
                     return l==r;
                 
                 }
-                else if(left.value instanceof Date&& right.value instanceof Date){
-                    Date l = (Date) left.value;
-                    Date r= (Date) right.value;
+                else if(left.getValue() instanceof Date&& right.getValue() instanceof Date){
+                    Date l = (Date) left.getValue();
+                    Date r= (Date) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare ==0){return true;}
                     else{return false;}
-                
                 }
+                else if(left.getValue() instanceof String && right.getValue() instanceof Date){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    if(l.equals(r)){
+                        return true;
+                    }
+                    else{return false;}
+                }
+                else if(left.getValue() instanceof Date && right.getValue() instanceof String){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    if(l.equals(r)){
+                        return true;
+                    }
+                    else{return false;}               
+                }                
+                
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
+                    float il = (float)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il==ir;
+                                   
+                }                
+                else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
+                    int il = (int)left.getValue();
+                    float ir = (float)right.getValue();
+                    return il==ir;
+                                   
+                }                
+                
                 else{
-                    throw new Exception("ERROR DE TIPOS");
-                }               
+                    String s="ERROR: Tipos invalidos en valores de restriccion: "+left.getValue().toString()+", "+right.getValue().toString();
+                    throw new Exception(s);
+                } 
+                
             case "<>":
-                if(left.value instanceof Integer && right.value instanceof Integer){
-                    int il = (int)left.value;
-                    int ir = (int)right.value;
+                if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
+                    int il = (int)left.getValue();
+                    int ir = (int)right.getValue();
                     return il!=ir;
                     
                 }
                 
-                else if(left.value instanceof String && right.value instanceof String){
-                    String l = (String) left.value;
-                    String r = (String) right.value;
+                else if(left.getValue() instanceof String && right.getValue() instanceof String){
+                    String l = (String) left.getValue();
+                    String r = (String) right.getValue();
                     return !left.equals(right);
                 }
                 
-                else if(left.value instanceof Float || right.value instanceof Float){
-                    float l = (float) left.value;
-                    float r = (float) right.value;
+                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
+                    float l = (float) left.getValue();
+                    float r = (float) right.getValue();
                     return l!=r;
                 
                 }
-                else if(left.value instanceof Date&& right.value instanceof Date){
-                    Date l = (Date) left.value;
-                    Date r= (Date) right.value;
+                else if(left.getValue() instanceof Date&& right.getValue() instanceof Date){
+                    Date l = (Date) left.getValue();
+                    Date r= (Date) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare !=0){return true;}
                     else{return false;}
                 
                 }
+                else if(left.getValue() instanceof String && right.getValue() instanceof Date){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    if(l.equals(r)){
+                        return false;
+                    }
+                    else{return true;}
+                }
+                else if(left.getValue() instanceof Date && right.getValue() instanceof String){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    if(l.equals(r)){
+                        return false;
+                    }
+                    else{return true;}               
+                }                
+                                
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
+                    float il = (float)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il!=ir;
+                                   
+                }                
+                else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
+                    int il = (int)left.getValue();
+                    float ir = (float)right.getValue();
+                    return il!=ir;
+                                   
+                }                  
+                
                 else{
-                    throw new Exception("ERROR DE TIPOS");
+                    String s="ERROR: Tipos invalidos en valores de restriccion: "+left.getValue().toString()+", "+right.getValue().toString();
+                    throw new Exception(s);
                 } 
+          
             case ">":
-                if(left.value instanceof Integer && right.value instanceof Integer){
-                    int il = (int)left.value;
-                    int ir = (int)right.value;
+                if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
+                    int il = (int)left.getValue();
+                    int ir = (int)right.getValue();
                     return il>ir;
                     
                 }
                 
-                else if(left.value instanceof String && right.value instanceof String){
-                    String l = (String) left.value;
-                    String r = (String) right.value;
+                else if(left.getValue() instanceof String && right.getValue() instanceof String){
+                    String l = (String) left.getValue();
+                    String r = (String) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare>0){return true;}
                     else if(compare<0||compare==0){return false;}
                 }
-                else if(left.value instanceof Float || right.value instanceof Float){
-                    float l = (float) left.value;
-                    float r = (float) right.value;
+                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
+                    float l = (float) left.getValue();
+                    float r = (float) right.getValue();
                     return l>r;
                 
                 }
-                else if(left.value instanceof Date&& right.value instanceof Date){
-                    Date l = (Date) left.value;
-                    Date r= (Date) right.value;
+                else if(left.getValue() instanceof Date&& right.getValue() instanceof Date){
+                    Date l = (Date) left.getValue();
+                    Date r= (Date) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare >0){return true;}
                     else{return false;}
                 
+                }   
+               else if(left.getValue() instanceof String && right.getValue() instanceof Date){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare>0){
+                        return true;
+                    }
+                    else{return false;}
+                }
+                else if(left.getValue() instanceof Date && right.getValue() instanceof String){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare>0){
+                        return true;
+                    }
+                    else{return false;}              
                 }                
-                else{
-                    throw new Exception("ERROR DE TIPOS");
-                }                
-            case ">=":
-                if(left.value instanceof Integer && right.value instanceof Integer){
-                    int il = (int)left.value;
-                    int ir = (int)right.value;
+                                
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
+                    float il = (float)left.getValue();
+                    int ir = (int)right.getValue();
                     return il>ir;
+                                   
+                }                
+                else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
+                    int il = (int)left.getValue();
+                    float ir = (float)right.getValue();
+                    return il>ir;
+                                   
+                }                            
+                else{
+                    String s="ERROR: Tipos invalidos en valores de restriccion: "+left.getValue().toString()+", "+right.getValue().toString();
+                    throw new Exception(s);
+                } 
+                break;
+            case ">=":
+                if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
+                    int il = (int)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il>=ir;
                     
                 }
                 
-                else if(left.value instanceof String && right.value instanceof String){
-                    String l = (String) left.value;
-                    String r = (String) right.value;
+                else if(left.getValue() instanceof String && right.getValue() instanceof String){
+                    String l = (String) left.getValue();
+                    String r = (String) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare>0||compare==0){return true;}
                     else if(compare<0){return false;}
                 }
-                else if(left.value instanceof Float || right.value instanceof Float){
-                    float l = (float) left.value;
-                    float r = (float) right.value;
-                    return l>r;
+                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
+                    float l = (float) left.getValue();
+                    float r = (float) right.getValue();
+                    return l>=r;
                 
                 }
-                else if(left.value instanceof Date&& right.value instanceof Date){
-                    Date l = (Date) left.value;
-                    Date r= (Date) right.value;
+                else if(left.getValue() instanceof Date&& right.getValue() instanceof Date){
+                    Date l = (Date) left.getValue();
+                    Date r= (Date) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare >0||compare==0){return true;}
                     else{return false;}
                 
                 }                  
-                
+               else if(left.getValue() instanceof String && right.getValue() instanceof Date){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare>0||compare==0){
+                        return true;
+                    }
+                    else{return false;}
+                }
+                else if(left.getValue() instanceof Date && right.getValue() instanceof String){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare>0||compare==0){
+                        return true;
+                    }
+                    else{return false;}              
+                }                
+                                
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
+                    float il = (float)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il>=ir;
+                                   
+                }                
+                else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
+                    int il = (int)left.getValue();
+                    float ir = (float)right.getValue();
+                    return il>=ir;
+                                   
+                }   
                 else{
-                    throw new Exception("ERROR DE TIPOS");
-                }                  
+                    String s="ERROR: Tipos invalidos en valores de restriccion: "+left.getValue().toString()+", "+right.getValue().toString();
+                    throw new Exception(s);
+                }
+                
+                break;
             case "<":
-                if(left.value instanceof Integer && right.value instanceof Integer){
-                    int il = (int)left.value;
-                    int ir = (int)right.value;
-                    return il>ir;
+                if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
+                    int il = (int)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il<ir;
                     
                 }
                 
-                else if(left.value instanceof String && right.value instanceof String){
-                    String l = (String) left.value;
-                    String r = (String) right.value;
+                else if(left.getValue() instanceof String && right.getValue() instanceof String){
+                    String l = (String) left.getValue();
+                    String r = (String) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare<0){return true;}
                     else if(compare>0||compare==0){return false;}
                 }
-                else if(left.value instanceof Float || right.value instanceof Float){
-                    float l = (float) left.value;
-                    float r = (float) right.value;
-                    return l>r;
+                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
+                    float l = (float) left.getValue();
+                    float r = (float) right.getValue();
+                    return l<r;
                 
                 }
-                else if(left.value instanceof Date&& right.value instanceof Date){
-                    Date l = (Date) left.value;
-                    Date r= (Date) right.value;
+                else if(left.getValue() instanceof Date&& right.getValue() instanceof Date){
+                    Date l = (Date) left.getValue();
+                    Date r= (Date) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare <0){return true;}
                     else{return false;}
                 
-                }                   
+                }    
                 
+               else if(left.getValue() instanceof String && right.getValue() instanceof Date){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare<0){
+                        return true;
+                    }
+                    else{return false;}
+                }
+                else if(left.getValue() instanceof Date && right.getValue() instanceof String){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare<0){
+                        return true;
+                    }
+                    else{return false;}              
+                }                
+                                
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
+                    float il = (float)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il<ir;
+                                   
+                }                
+                else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
+                    int il = (int)left.getValue();
+                    float ir = (float)right.getValue();
+                    return il<ir;
+                                   
+                } 
                 
                 else{
-                    throw new Exception("ERROR DE TIPOS");
+                    String s="ERROR: Tipos invalidos en valores de restriccion: "+left.getValue().toString()+", "+right.getValue().toString();
+                    throw new Exception(s);
                 }                  
-                
+                break;
                 
             case "<=":     
-                if(left.value instanceof Integer && right.value instanceof Integer){
-                    int il = (int)left.value;
-                    int ir = (int)right.value;
-                    return il>ir;
+                if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
+                    int il = (int)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il<=ir;
                     
                 }
                 
-                else if(left.value instanceof String && right.value instanceof String){
-                    String l = (String) left.value;
-                    String r = (String) right.value;
+                else if(left.getValue() instanceof String && right.getValue() instanceof String){
+                    String l = (String) left.getValue();
+                    String r = (String) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare<0|| compare==0){return true;}
                     else if(compare>0){return false;}
                 }
-                else if(left.value instanceof Float || right.value instanceof Float){
-                    float l = (float) left.value;
-                    float r = (float) right.value;
-                    return l>r;
+                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
+                    float l = (float) left.getValue();
+                    float r = (float) right.getValue();
+                    return l<=r;
                 
                 }
-                else if(left.value instanceof Date&& right.value instanceof Date){
-                    Date l = (Date) left.value;
-                    Date r= (Date) right.value;
+                else if(left.getValue() instanceof Date&& right.getValue() instanceof Date){
+                    Date l = (Date) left.getValue();
+                    Date r= (Date) right.getValue();
                     int compare = l.compareTo(r);
                     if(compare <0||compare==0){return true;}
                     else{return false;}
                 
                 }                   
-                                
-                else{
-                    throw new Exception("ERROR DE TIPOS");
-                }                      
                 
+               else if(left.getValue() instanceof String && right.getValue() instanceof Date){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare<0||compare==0){
+                        return true;
+                    }
+                    else{return false;}
+                }
+                else if(left.getValue() instanceof Date && right.getValue() instanceof String){
+                    String l = left.getValue().toString();
+                    String r = right.getValue().toString();
+                    int compare = l.compareTo(r);
+                    if(compare<0||compare==0){
+                        return true;
+                    }
+                    else{return false;}              
+                }                
+                                
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
+                    float il = (float)left.getValue();
+                    int ir = (int)right.getValue();
+                    return il<ir;
+                                   
+                }                
+                else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
+                    int il = (int)left.getValue();
+                    float ir = (float)right.getValue();
+                    return il<ir;
+                                   
+                } 
+                
+                
+                                               
+                else{
+                    String s="ERROR: Tipos invalidos en valores de restriccion: "+left.getValue().toString()+", "+right.getValue().toString();
+                    throw new Exception(s);
+                }                      
+                break;
                 
         
         }

@@ -376,6 +376,18 @@ public class SQLBaseListener implements SQLListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterMultiInsert(@NotNull SQLParser.MultiInsertContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMultiInsert(@NotNull SQLParser.MultiInsertContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterRenameAlter(@NotNull SQLParser.RenameAlterContext ctx) { }
 	/**
 	 * {@inheritDoc}

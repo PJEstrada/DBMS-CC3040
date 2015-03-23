@@ -1,4 +1,9 @@
 Master 
+<<<<<<< HEAD
+Nombre Base de Datos: test
+Cantidad Tablas: 2
+=======
 Nombre Base de Datos: testN
 Cantidad Tablas: 1
-
+>>>>>>> origin/Al
+

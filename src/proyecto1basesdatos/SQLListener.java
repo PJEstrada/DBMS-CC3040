@@ -309,6 +309,16 @@ public interface SQLListener extends ParseTreeListener {
 	 */
 	void exitShowColumnsStmt(@NotNull SQLParser.ShowColumnsStmtContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SQLParser#multiInsert}.
+	 * @param ctx the parse tree
+	 */
+	void enterMultiInsert(@NotNull SQLParser.MultiInsertContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SQLParser#multiInsert}.
+	 * @param ctx the parse tree
+	 */
+	void exitMultiInsert(@NotNull SQLParser.MultiInsertContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code renameAlter}
 	 * labeled alternative in {@link SQLParser#alterTableStmt}.
 	 * @param ctx the parse tree

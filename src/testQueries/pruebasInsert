@@ -1,0 +1,32 @@
+CREATE TABLE asignacion
+(
+  idserial INT,
+  estudianteid INT,
+  universidadid INT,
+  materia CHAR(255),
+  nota INT,
+  fecha_ingreso DATE,
+  CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial,estudianteid),
+  CONSTRAINT checkNota CHECK (nota<10 )
+)
+
+CREATE TABLE A 
+(
+  idSerialA INT,
+  estudiante INT,
+
+  CONSTRAINT pkeyA PRIMARY KEY (idSerialA),
+  CONSTRAINT fkeyAsignacion FOREIGN KEY (idSeriala,estudiante) REFERENCES asignacion (idserial,estudianteid)
+)
+
+
+INSERT INTO asignacion VALUES (13,'13',3,'DB',8); 
+INSERT INTO asignacion VALUES (14,'14',3,'DB',7); 
+INSERT INTO asignacion VALUES (15,15,3,'DB',6);
+INSERT INTO asignacion(idSerial, materia,estudianteid,nota) VALUES (16,'BasesDatos',16,5)
+
+
+
+INSERT INTO A (idseriala) VALUES (15)
+
+INSERT INTO A (estudiante,idserialA) VALUES (5,7) --> NullPointer

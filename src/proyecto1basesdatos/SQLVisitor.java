@@ -192,6 +192,12 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitShowColumnsStmt(@NotNull SQLParser.ShowColumnsStmtContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SQLParser#multiInsert}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMultiInsert(@NotNull SQLParser.MultiInsertContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code renameAlter}
 	 * labeled alternative in {@link SQLParser#alterTableStmt}.
 	 * @param ctx the parse tree
