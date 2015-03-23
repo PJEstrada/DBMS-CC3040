@@ -233,31 +233,24 @@ public class Loader extends SQLBaseVisitor<Object>{
                    for(ParseTree n: ctx.colConstraint()){
                        Object c = visit(n);
                        if(!(c instanceof Constraint)){
-                           return "ERROR";
-                       
+                           return "ERROR"; 
                        }
                        else{
                            Constraint con =(Constraint)c;
                            cons.add(con);
                        }
-                       
                    } 
                     //Creamos la tabla y la serializamos 
                     t1 = new Tabla(name,cols,cons);
                     Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
                     return t1;                    
-
                 }
                 else{
                     //Creamos la tabla y la serializamos 
                     t1 = new Tabla(name,cols);
                     Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
                     return t1;
-
-
-                } 
-                
-              
+                }  
             }
 	}
 
@@ -470,14 +463,60 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitShowTableStmt(SQLParser.ShowTableStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitShowTableStmt(ctx);
+            String dbActual = DBMS.currentDB;
+            //ArraysList para crear el resultado a mostrar
+            ArrayList<String> tablesHere = DBMS.metaData.allTable(dbActual);
+            ArrayList<String> encabezado = new ArrayList<String>();
+            ArrayList<ArrayList<String>> filas = new ArrayList<ArrayList<String>>();
+            
+            //Se recorre el arraylist obtenido del metodo para preparar las filas
+            encabezado.add("Tables in "+dbActual);
+            for(int i = 0; i<tablesHere.size(); i++){
+                ArrayList<String> temp = new ArrayList<String>();
+                temp.add(tablesHere.get(i));
+                filas.add(temp);
+            }
+            Resultados results = new Resultados(encabezado, filas);
+            return super.visitShowTableStmt(ctx);
 	}
 
 	@Override
 	public Object visitShowColumnsStmt(SQLParser.ShowColumnsStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitShowColumnsStmt(ctx);
+            String nameTable = ctx.ID().getText();
+            //Se carga la metadata de la tabla que se desea mostrar
+            DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+            TablaMetaData tm=d.findTable(nameTable);
+            if(tm == null){
+                Frame.jTextArea2.setText("ERROR: La tabla  "+nameTable+" no existe dentro de "+DBMS.currentDB);
+                return "ERROR";   
+            }
+            ArrayList<String> titulos1 = new ArrayList<String>();
+            ArrayList<String> titulos2 = new ArrayList<String>();
+            ArrayList<ArrayList<String>> filas1 = new ArrayList();
+            ArrayList<ArrayList<String>> filas2 = new ArrayList();
+            //se carga los titulos para la primera tabla
+            titulos1.add("Column Name");
+            titulos1.add("Column Type");
+            titulos2.add("Constraint Name");
+            titulos2.add("Constraint Type");
+            titulos2.add("Constraint Description");
+            //se cargan las filas para las columnas que se desean mostrar
+            for (ColumnMetaData columna : tm.columnas) {
+                ArrayList<String> temp = new ArrayList<String>();
+                temp.add(columna.nombre);
+                temp.add(columna.tipo);
+                filas1.add(temp);
+            }
+            //Se cargan las filas para los contraints
+            for(ConstraintMetaData constraint: tm.constraints){
+                ArrayList<String> temp = new ArrayList<String>();
+                temp.add(constraint.nombre);
+                temp.add(constraint.tipo);
+                temp.add(constraint.decripcion);
+                filas2.add(temp);
+            }
+            Resultados result = new Resultados(titulos1,filas1,titulos2,filas2);
+            return super.visitShowColumnsStmt(ctx);
 	}
 
 	@Override
@@ -1268,7 +1307,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                 tempFila.add(nombresDB.get(i));
                 filas.add(tempFila);
             }
-           Resultados results = new Resultados(tituloColumnas, filas);
+            Resultados results = new Resultados(tituloColumnas, filas);
             return super.visitShowDbStmt(ctx);
 	}
 
@@ -1281,6 +1320,14 @@ public class Loader extends SQLBaseVisitor<Object>{
             4. Borrar en el archivo serealizable - deleteAllFilesWithName*/
             String dbActual = DBMS.currentDB;
             String tablename = ctx.ID().getText();
+            //Se revisa si existe una dependecia con esta tabla antes de ser eliminada
+            ArrayList<Constraint> constreintsHere = getAllForeignConstraints();
+            for(Constraint c: constreintsHere){
+                if(c.foreignTable.equals(tablename)){
+                    Frame.jTextArea2.setText("ERROR: Existe una referencia a la tabla "+tablename);
+                    return "ERROR";
+                }
+            }
             //Verificamos si hay una DB en uso
             if(DBMS.currentDB==null){
                 Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
@@ -1304,9 +1351,13 @@ public class Loader extends SQLBaseVisitor<Object>{
             File f1  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+"_constraints.ser");
             File f2  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+"_cols.ser");
             File f3  = new File(currentDir+"/DBMS/"+dbActual+"/"+tablename+".ser");
-            f1.delete();
-            f2.delete();
-            f3.delete();
+            if(f1.exists() && f2.exists() && f3.exists())
+            {
+                System.gc();
+                f1.delete();
+                f2.delete();
+                f3.delete();
+            }
             Frame.jTextArea2.setText("Tabla '"+tablename+ "' Borrada existosamente.");
             return super.visitDropTableStmt(ctx);
 	}

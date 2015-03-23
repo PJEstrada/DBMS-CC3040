@@ -39,7 +39,18 @@ public class DBMSMetaData implements Serializable {
     
         return s;
     }
-    
+    //metodo que regresa todas las tablas de un db
+    public ArrayList<String> allTable(String lookFor)
+    {
+        ArrayList<String> toReturn = new ArrayList<String>();
+        for(DBMetaData d: dbs){
+            if(d.nombreDB.equals(lookFor)){
+                toReturn = d.allTables();
+                break;
+            }
+        }
+        return toReturn;
+    }
     //Pendiente llamar recursivamente
     public void writeMetadata(){
         Writer writer = null;
