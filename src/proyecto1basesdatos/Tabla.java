@@ -110,6 +110,60 @@ public class Tabla implements Serializable {
         return false;
     
     }
+    
+    public boolean estaDuplicado(Object valor, int iColumna){
+        int ocurrencias =0;
+        for(Tupla t:this.tuplas){
+            Object v2 = t.valores.get(iColumna);
+            if(v2 instanceof Integer){
+               int v2c = (Integer) v2;
+               int valorc = (Integer) valor;
+               if(v2c==valorc){
+                   ocurrencias++;
+               }
+            }
+            else if( v2 instanceof Float){
+                if(v2 instanceof Float){
+                    float v2c = (Float) v2;
+                    float valorc = (Float) valor;
+                    if(v2c == valorc){
+                         ocurrencias++;
+                    }
+                
+                }
+            }
+            
+            else if (v2 instanceof String){
+                String v2c = (String) v2.toString();
+                String valorc = valor.toString();
+                if(v2c.equals(valorc)){
+                    ocurrencias++;
+                }
+                
+            }
+            
+            else if(v2 instanceof LocalDateTime){
+                LocalDate v2c = (LocalDate) v2;
+                LocalDate valorc = (LocalDate) valor;
+                if(v2c.equals(valorc)){
+                    ocurrencias++;
+                }
+            
+            }
+        }
+        if(ocurrencias>1){return true;}
+        else{return false;}
+    }    
+    public void actualizarTupla(ArrayList<Object> valores, ArrayList<Integer> iColumna, int numTupla){
+        ArrayList<Object> oldValues = this.tuplas.get(numTupla).valores;
+        int j =0;
+        for(int i =0;i<iColumna.size();i++){
+            int indiceActual = iColumna.get(i);
+            Object valorActual = valores.get(i);
+            oldValues.set(indiceActual, valorActual);
+        }
+    
+    }
     public boolean contieneValor(ArrayList<Object> valores, ArrayList<Integer> iColumnas){       
         for(Tupla t:this.tuplas){
             boolean result = true;
@@ -166,6 +220,68 @@ public class Tabla implements Serializable {
         return false;
     
     }    
+    
+    public boolean estaDuplicado(ArrayList<Object> valores, ArrayList<Integer> iColumnas){    
+        int ocurrencias =0;
+        for(Tupla t:this.tuplas){
+            boolean result = true;
+            for(int i =0;i<valores.size();i++){             
+                Object v1 = valores.get(i);
+                int iColumna = iColumnas.get(i);
+                Object v2 = t.valores.get(iColumna);
+                if(v2 instanceof Integer){
+                    int v2c = (Integer) v2;
+                    int valorc = (Integer) v1;
+                    if(v2c!=valorc){
+                        result = false;
+                        break;
+                    }
+                 }
+                 else if( v2 instanceof Float){
+                     if(v2 instanceof Float){
+                         float v2c = (Float) v2;
+                         float valorc = (Float) v1;
+                         if(v2c != valorc){
+                             result = false;
+                             break;
+                         }
+
+                     }
+                 }
+
+                 else if (v2 instanceof String){
+                     String v2c = (String) v2.toString();
+                     String valorc = v1.toString();
+                     if(!v2c.equals(valorc)){
+                         result = false;
+                         break;
+                     }
+
+                 }
+
+                 else if(v2 instanceof LocalDateTime){
+                     LocalDate v2c = (LocalDate) v2;
+                     LocalDate valorc = (LocalDate) v1;
+                     if(!v2c.equals(valorc)){
+                         result = false;
+                         break;
+                     }
+
+                 }           
+            }
+            if(result){
+                ocurrencias++;
+                result =  true;
+            }
+            
+ 
+        }
+        if(ocurrencias>=2){
+            return true;
+        }
+        else{return false;}
+    
+    }     
     public int getIndiceColumna(String colName){
         int i =0;
         boolean f =false;

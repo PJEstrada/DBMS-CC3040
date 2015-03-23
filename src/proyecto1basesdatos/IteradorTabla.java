@@ -37,5 +37,8 @@ public class IteradorTabla {
     public void deleteValue(){
         tabla.tuplas.remove(indiceActual);
     }
+    public void siguiente(){
+        indiceActual++;
+    }
     
 }
