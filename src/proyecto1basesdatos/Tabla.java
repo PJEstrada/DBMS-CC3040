@@ -357,11 +357,13 @@ public class Tabla implements Serializable {
                in.close();
                fileIn.close(); 
                return ret;
+               
             }catch(Exception i)
             {
                i.printStackTrace();
                return null;         
-            }            
+            }
+
         
         }  
         else{
