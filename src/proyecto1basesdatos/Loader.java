@@ -2112,6 +2112,17 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             //Una vez tenemos todas las tablas calculamos el producto cartesiano de ellas
             Tabla temp = productoCartesiano(tablasFrom);
+            for(Tupla t: temp.tuplas){
+                System.out.println(t.toString());
+            }
+            Orders o1 = new Orders("A1","ASC");
+            ArrayList<Orders> orderBy = new ArrayList();
+            orderBy.add(o1);
+            
+            ComparatorColumn com = new ComparatorColumn(temp, orderBy);
+            for(Tupla t: com.myTable.tuplas){
+                System.out.println(t.toString());
+            }
             Loader.iterador = new IteradorTabla(temp,0);
             //Verificamos que existan las columnas del where en la tabla temporal
             

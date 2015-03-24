@@ -63,6 +63,8 @@ public class ComparatorColumn {
                 indexSame.clear();
             }
         }
+        myTable.tuplas.clear();
+        myTable.tuplas.addAll(toSort);
     }
     
     public void lookForRepets(ArrayList<Tupla> toLook){
