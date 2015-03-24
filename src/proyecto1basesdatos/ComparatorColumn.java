@@ -53,7 +53,14 @@ public class ComparatorColumn {
                     int lowH = 0;
                     int highH = mT.size()-1;
                     quickSortTupla(mT,lowH,highH);
+                    //Se sustituyen el mT en toSort
+                    for(int j = 0; j<mT.size(); j++){
+                        int toDo = indexSame.get(j);
+                        toSort.set(toDo, mT.get(j));
+                        indexSame.remove(j);
+                    }
                 }
+                indexSame.clear();
             }
         }
     }
