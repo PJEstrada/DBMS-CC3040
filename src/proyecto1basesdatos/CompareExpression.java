@@ -38,7 +38,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    return left.equals(right);
+                    return l.equals(r);
                 }
                 
                 else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
@@ -100,7 +100,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    return !left.equals(right);
+                    return !l.equals(r);
                 }
                 
                 else if(left.getValue() instanceof Float || right.getValue() instanceof Float){

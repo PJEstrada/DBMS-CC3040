@@ -901,6 +901,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                }
                i++;
            }
+            DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
+            TablaMetaData tm = bd.findTable(this.tableCreate.name);
+            tm.cantRegistros++;
+            this.tableCreate.guardarTabla();
+            DBMS.metaData.writeMetadata();
+            DBMS.guardar();                
            Frame.jTextArea2.setText("Insert ("+size+") registros con exito.");
            return true;
        
@@ -911,7 +917,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                  ArrayList<Integer> tipos = new ArrayList<Integer>();
                 //Cargamos la tabla donde se insertara la tupla
                 String tableName = ctx.table().getText();
-                Tabla t = Tabla.loadTable(tableName);
+                if(this.tableCreate== null){
+                    this.tableCreate = Tabla.loadTable(tableName);
+                }
+                Tabla t = this.tableCreate;
                 if(t==null){
                     Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
                     return "ERROR";
@@ -999,7 +1008,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                             valor = Float.parseFloat(n.getText());
                         }
                         else if(valueType == Columna.DATE_TYPE){
-                            valor = LocalDate.parse(n.getText());
+                            String v = n.getText();
+                            v= v.substring(1);
+                            v = v.substring(0,v.length()-1);                              
+                            valor = LocalDate.parse(v);
                         }
                         valores.add(valor);
                         tipos.add(valueType);
@@ -1040,7 +1052,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     valores.set(i, v);
                                 }
                                 else{
-                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
                                     return "ERRROR";
                                 }
                             }
@@ -1235,12 +1247,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 //Guardamos la tabla y la metaData
                 t.tuplas.add(nuevaTupla);
-                DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
-                TablaMetaData tm = bd.findTable(t.name);
-                tm.cantRegistros++;
-                t.guardarTabla();
-                DBMS.metaData.writeMetadata();
-                DBMS.guardar();     
+
                 Frame.jTextArea2.setText("Insert terminado.");
                 return true;
 	}
@@ -1283,17 +1290,37 @@ public class Loader extends SQLBaseVisitor<Object>{
             for(ParseTree n: ctx.columnsUpdate()){
                 String colName = n.getText();
                 Columna existe = this.findCol(colName, t.columnas);
+                
                 if(existe == null){
                     Frame.jTextArea2.setText("ERROR: No se encuentra la Columna: <<"+colName+">> en la tabla: "+tableName);
                     return "ERROR";                           
                 }
                  //Verificamos los tipos del valor y la columna actual
+
                 Object tipoValor1 = visit(ctx.val(i));
+                valores.add(ctx.val(i).getText());
                 if(tipoValor1 instanceof String){
                     return "ERROR";
                 }
                 int tipoValor = (Integer) tipoValor1;
                 int tipoColumna= existe.tipo;
+                Object valor = null;
+                if(tipoValor==Columna.CHAR_TYPE){
+                    String v = ctx.val(i).getText();
+                    v= v.substring(1);
+                    v = v.substring(0,v.length()-1);                            
+                    valor = v;
+                }
+                else if (tipoValor == Columna.INT_TYPE){
+                    valor = Integer.parseInt(ctx.val(i).getText());
+                }
+                else if(tipoValor == Columna.FLOAT_TYPE){
+                    valor = Float.parseFloat(ctx.val(i).getText());
+                }
+                else if(tipoValor == Columna.DATE_TYPE){
+                    valor = LocalDate.parse(ctx.val(i).getText());
+                }                
+                valores.set(i,valor);
                 // Si no son iguales... intentamos hacer conversion de tipos
                 if(tipoValor != tipoColumna){                           
                     if(tipoValor == Columna.INT_TYPE){
@@ -1413,7 +1440,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             ArrayList<Integer> indicesColumnas = new ArrayList<Integer>();
             //Obtenemos los indices de las columnas especificadas en la tabla
-            for(int j =0;i<columnasEspecificadas.size();j++){
+            for(int j =0;j<columnasEspecificadas.size();j++){
                 int indice = t.getIndiceColumna(columnasEspecificadas.get(j).nombre);
                 indicesColumnas.add(indice);
             }
@@ -1516,7 +1543,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     ArrayList<Integer> indexT = new ArrayList<Integer>();
                     ArrayList<Object> valoresActuales = new ArrayList<Object>(); 
                     for(Columna col: refCons.localFkeys){
-                        int index = localTable.getIndiceColumna(localTable.name);
+                        int index = localTable.getIndiceColumna(col.nombre);
                         indexBuscar.add(index);
                     }
                     for(int iv: indexBuscar){
@@ -1531,7 +1558,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                       // Revisamos si los valores de la tupla actual existen en los valores de la tabla de referencia (i.e la mencionada en UPDATE tableName) 
                     boolean encontrada = t.contieneValor(valoresActuales, indexT);
                     if(encontrada==false){
-                        Frame.jTextArea2.setText("ERROR: La restriccion <<"+refCons.nombre+">> de la tabla <<"+localTable.name+">>esta siendo violdada con la actualizacion porque se cambiaron.");
+                        Frame.jTextArea2.setText("ERROR: La restriccion <<"+refCons.nombre+">> de la tabla <<"+localTable.name+">>esta siendo violdada con la actualizacion porque se cambio el valor de una tupla referenciada.");
                         return "ERROR";
                     }
 
@@ -1933,6 +1960,8 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             else if(ctx.CHAR_VAL()!=null){
                 String s = ctx.CHAR_VAL().getText();
+                s= s.substring(1);
+                s = s.substring(0,s.length()-1);
                 Term t = new Term(s);
                 return t;
             }

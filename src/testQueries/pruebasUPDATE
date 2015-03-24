@@ -1,9 +1,35 @@
-INSERT INTO asignacion VALUES (1,1,1,'test1',1)
-INSERT INTO asignacion VALUES (2,2,2,'test2',2)
-INSERT INTO asignacion VALUES (3,3,3,'test3',3)
-INSERT INTO asignacion VALUES (4,4,4,'test4',4)
+INSERT INTO asignacion VALUES (1,1,1,'test1',1);
+INSERT INTO asignacion VALUES (2,2,2,'test2',2);
+INSERT INTO asignacion VALUES (3,3,3,'test3',3);
+INSERT INTO asignacion VALUES (4,4,4,'test4',4);
 INSERT INTO asignacion VALUES (5,5,5,'test5',5)
 
-INSERT into films VALUES ('test1','2-2-1985','test1',10,10)
+INSERT INTO films VALUES ('test1','1985-02-02','test1',10,10)
 
-UPDATE asignacion SET materia = "test22" WHERE materia = "test1"
+UPDATE asignacion SET materia = 'test22' WHERE materia = 'test1'
+UPDATE asignacion SET materia = 'test2' WHERE materia = 'test1'
+
+
+/*Pruebas*/
+CREATE TABLE films
+(
+  tittle CHAR(255),
+  release_date DATE,
+  kind CHAR(255),
+  duracion INT,
+  newcol1 INT,
+  CONSTRAINT films_tittle_fkey FOREIGN KEY (tittle)
+      REFERENCES asignacion (materia)
+    
+)
+
+
+CREATE TABLE asignacion
+(
+  idserial INT,
+  estudianteid INT,
+  universidadid INT,
+  materia CHAR(255) ,
+  nota INT,
+  CONSTRAINT asignacion_pkey PRIMARY KEY (materia)
+)
