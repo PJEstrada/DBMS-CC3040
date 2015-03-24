@@ -73,6 +73,9 @@ public class DBMS {
         System.out.print(a);*/
         
         /*Para debugging cuando alteramos tablas*/
+        /*for(int i =0; i<12000;i++){
+            System.out.println("INSERT INTO asignacion VALUES ("+i+","+i+","+i+",'test"+i+"',1);");
+        }*/
         DBMS.currentDB="test";
         Tabla t = Tabla.loadTable("asignacion");
 

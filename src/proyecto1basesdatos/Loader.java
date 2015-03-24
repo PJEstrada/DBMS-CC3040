@@ -47,6 +47,75 @@ public class Loader extends SQLBaseVisitor<Object>{
         public void error(String s){
             Frame.jTextArea2.setText(s);
         }
+        
+        public Tabla productoCartesiano(ArrayList<Tabla> tablas){
+            Tabla res = new Tabla();
+            res.name = "temp";
+            // Si solo hay una tabla devolvemos la nueva tabla temporal con las mismas tuplas y columnas
+            if(tablas.size()==1){
+                res.tuplas.addAll(tablas.get(0).tuplas);
+                res.columnas.addAll(tablas.get(0).columnas);
+                return res;
+            }
+            else if(tablas.size()==2){
+                //Agregamos todas las columnas de la primera y segunda tabla
+                res.columnas.addAll(tablas.get(0).columnas);
+                res.columnas.addAll(tablas.get(1).columnas);
+                // Combinamos todas las tuplas
+                for(Tupla t1 :tablas.get(0).tuplas){
+                    for(Tupla t2: tablas.get(1).tuplas){
+                        Tupla nuevaTupla = new Tupla(res);
+                        nuevaTupla.valores.addAll(t1.valores);
+                        nuevaTupla.valores.addAll(t2.valores);
+                        res.tuplas.add(nuevaTupla);
+                    }
+                }
+                return res;
+            }
+            else if(tablas.size()>2){
+                //Agregamos las columnas de las n tablas
+                for(Tabla t:tablas){
+                    res.columnas.addAll(t.columnas);
+                }
+                ArrayList<Tupla> tuplasResultantes = new ArrayList<Tupla>();
+                // Combinamos todas las tuplas de las primeras dos tablas
+                for(Tupla t1 :tablas.get(0).tuplas){
+                    for(Tupla t2: tablas.get(1).tuplas){
+                        Tupla nuevaTupla = new Tupla(res);
+                        nuevaTupla.valores.addAll(t1.valores);
+                        nuevaTupla.valores.addAll(t2.valores);
+                        tuplasResultantes.add(nuevaTupla);
+                    }
+                }
+                //Continuamos combinando con el resto de tablas
+                for(int i =2; i<tablas.size();i++){
+                    ArrayList<Tupla> tuplasActuales = new ArrayList<Tupla>();
+                    tuplasActuales.addAll(tablas.get(i).tuplas);
+                    ArrayList<Tupla> tuplasAnteriores = new ArrayList<Tupla>();
+                    tuplasAnteriores.addAll(tuplasResultantes);
+                    tuplasResultantes.clear();
+                    for(Tupla t1: tuplasAnteriores){
+                        for(Tupla t2: tuplasActuales){
+                            Tupla nuevaTupla = new Tupla(res);
+                            nuevaTupla.valores.addAll(t1.valores);
+                            nuevaTupla.valores.addAll(t2.valores);
+                            tuplasResultantes.add(nuevaTupla);
+                        }
+
+                  
+                    
+                    }
+                }
+                res.tuplas.addAll(tuplasResultantes);
+                return res;
+                
+                
+                
+            
+            }
+            else{return null;}
+        
+        }
         public ArrayList<Constraint> obtenerReferenciasDe(String tableName){
             ArrayList<Constraint> res = new ArrayList<Constraint>();
             ArrayList<Constraint> cons = getAllForeignConstraints();
@@ -936,6 +1005,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                }
                i++;
            }
+            DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
+            TablaMetaData tm = bd.findTable(this.tableCreate.name);
+            tm.cantRegistros= tm.cantRegistros+i;
+            this.tableCreate.guardarTabla();
+            DBMS.metaData.writeMetadata();
+            DBMS.guardar();                
            Frame.jTextArea2.setText("Insert ("+size+") registros con exito.");
            return true;
        
@@ -946,7 +1021,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                  ArrayList<Integer> tipos = new ArrayList<Integer>();
                 //Cargamos la tabla donde se insertara la tupla
                 String tableName = ctx.table().getText();
-                Tabla t = Tabla.loadTable(tableName);
+                if(this.tableCreate== null){
+                    this.tableCreate = Tabla.loadTable(tableName);
+                }
+                Tabla t = this.tableCreate;
                 if(t==null){
                     Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
                     return "ERROR";
@@ -1034,7 +1112,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                             valor = Float.parseFloat(n.getText());
                         }
                         else if(valueType == Columna.DATE_TYPE){
-                            valor = LocalDate.parse(n.getText());
+                            String v = n.getText();
+                            v= v.substring(1);
+                            v = v.substring(0,v.length()-1);                              
+                            valor = LocalDate.parse(v);
                         }
                         valores.add(valor);
                         tipos.add(valueType);
@@ -1075,7 +1156,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     valores.set(i, v);
                                 }
                                 else{
-                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
                                     return "ERRROR";
                                 }
                             }
@@ -1186,22 +1267,27 @@ public class Loader extends SQLBaseVisitor<Object>{
                     Loader.iterador = new IteradorTabla(tempTabla,0);
                     for(Constraint cons: t.constraints){
                         if(cons.tipo==Constraint.PK){
+                             ArrayList<Integer> indices = new ArrayList<Integer>();
+                             ArrayList<Object> pkeyValues = new ArrayList<Object>();
                             //Revisamos que las columnas de la constraint no sean nulas
                             for(Columna c:cons.colsPkeys){
                                 int iValor = t.getIndiceColumna(c.nombre);
+                                indices.add(iValor);
                                 Object v = nuevaTupla.valores.get(iValor);
+                                pkeyValues.add(v);
                                 if(v==null){
                                      Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+">> no puede tener valor nulo por la constraint <<"+cons.nombre+">>");
                                      return "ERRROR";                                     
                                 }
-                                //Revisamos si ya existe el valor en las tuplas de la tabla
-                                boolean yaExiste = t.contieneValor(v, iValor);
-                                if(yaExiste){
-                                     Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+"> Debe tener valor unico por la PK: <<"+cons.nombre+">>");
-                                     return "ERRROR";                                         
-                                }
                             
                             }
+                                
+                            //Revisamos si ya existe el valor en las tuplas de la tabla
+                            boolean yaExiste = t.contieneValor(pkeyValues, indices);
+                            if(yaExiste){
+                                 Frame.jTextArea2.setText("ERROR: la restriccion <<"+cons.nombre+">> esta siendo violada con la insercion. Debe existir valor unico por la PK: <<"+cons.nombre+">>");
+                                 return "ERRROR";                                         
+                            }                            
                         
                         }
                         else if (cons.tipo==Constraint.FK){
@@ -1270,12 +1356,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 //Guardamos la tabla y la metaData
                 t.tuplas.add(nuevaTupla);
-                DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
-                TablaMetaData tm = bd.findTable(t.name);
-                tm.cantRegistros++;
-                t.guardarTabla();
-                DBMS.metaData.writeMetadata();
-                DBMS.guardar();     
+
                 Frame.jTextArea2.setText("Insert terminado.");
                 return true;
 	}
@@ -1318,17 +1399,37 @@ public class Loader extends SQLBaseVisitor<Object>{
             for(ParseTree n: ctx.columnsUpdate()){
                 String colName = n.getText();
                 Columna existe = this.findCol(colName, t.columnas);
+                
                 if(existe == null){
                     Frame.jTextArea2.setText("ERROR: No se encuentra la Columna: <<"+colName+">> en la tabla: "+tableName);
                     return "ERROR";                           
                 }
                  //Verificamos los tipos del valor y la columna actual
+
                 Object tipoValor1 = visit(ctx.val(i));
+                valores.add(ctx.val(i).getText());
                 if(tipoValor1 instanceof String){
                     return "ERROR";
                 }
                 int tipoValor = (Integer) tipoValor1;
                 int tipoColumna= existe.tipo;
+                Object valor = null;
+                if(tipoValor==Columna.CHAR_TYPE){
+                    String v = ctx.val(i).getText();
+                    v= v.substring(1);
+                    v = v.substring(0,v.length()-1);                            
+                    valor = v;
+                }
+                else if (tipoValor == Columna.INT_TYPE){
+                    valor = Integer.parseInt(ctx.val(i).getText());
+                }
+                else if(tipoValor == Columna.FLOAT_TYPE){
+                    valor = Float.parseFloat(ctx.val(i).getText());
+                }
+                else if(tipoValor == Columna.DATE_TYPE){
+                    valor = LocalDate.parse(ctx.val(i).getText());
+                }                
+                valores.set(i,valor);
                 // Si no son iguales... intentamos hacer conversion de tipos
                 if(tipoValor != tipoColumna){                           
                     if(tipoValor == Columna.INT_TYPE){
@@ -1448,7 +1549,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             ArrayList<Integer> indicesColumnas = new ArrayList<Integer>();
             //Obtenemos los indices de las columnas especificadas en la tabla
-            for(int j =0;i<columnasEspecificadas.size();j++){
+            for(int j =0;j<columnasEspecificadas.size();j++){
                 int indice = t.getIndiceColumna(columnasEspecificadas.get(j).nombre);
                 indicesColumnas.add(indice);
             }
@@ -1551,7 +1652,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     ArrayList<Integer> indexT = new ArrayList<Integer>();
                     ArrayList<Object> valoresActuales = new ArrayList<Object>(); 
                     for(Columna col: refCons.localFkeys){
-                        int index = localTable.getIndiceColumna(localTable.name);
+                        int index = localTable.getIndiceColumna(col.nombre);
                         indexBuscar.add(index);
                     }
                     for(int iv: indexBuscar){
@@ -1566,7 +1667,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                       // Revisamos si los valores de la tupla actual existen en los valores de la tabla de referencia (i.e la mencionada en UPDATE tableName) 
                     boolean encontrada = t.contieneValor(valoresActuales, indexT);
                     if(encontrada==false){
-                        Frame.jTextArea2.setText("ERROR: La restriccion <<"+refCons.nombre+">> de la tabla <<"+localTable.name+">>esta siendo violdada con la actualizacion porque se cambiaron.");
+                        Frame.jTextArea2.setText("ERROR: La restriccion <<"+refCons.nombre+">> de la tabla <<"+localTable.name+">>esta siendo violdada con la actualizacion porque se cambio el valor de una tupla referenciada.");
                         return "ERROR";
                     }
 
@@ -1996,8 +2097,27 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitSelectStmt(SQLParser.SelectStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitSelectStmt(ctx);
+            //Primero revisamos las tablas especificadas en el from
+            ArrayList<Tabla> tablasFrom = new ArrayList<Tabla>();
+            for(ParseTree n: ctx.table()){
+                String tableName = n.getText();
+                Tabla t = Tabla.loadTable(tableName);
+                if(t==null){
+                    Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                    return "ERRROR";
+                }
+                else{
+                    tablasFrom.add(t);
+                }  
+            }
+            //Una vez tenemos todas las tablas calculamos el producto cartesiano de ellas
+            Tabla temp = productoCartesiano(tablasFrom);
+            Loader.iterador = new IteradorTabla(temp,0);
+            //Verificamos que existan las columnas del where en la tabla temporal
+            
+            
+            //Verificamos que existan las columnas del select en la tabla temporal
+            return true;
 	}
 
 	@Override
@@ -2038,6 +2158,8 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             else if(ctx.CHAR_VAL()!=null){
                 String s = ctx.CHAR_VAL().getText();
+                s= s.substring(1);
+                s = s.substring(0,s.length()-1);
                 Term t = new Term(s);
                 return t;
             }

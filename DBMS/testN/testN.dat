@@ -1,11 +1,0 @@
-Base de Datos: testN
-Numero Tablas: 1
-
-Tabla: asignacion 
-Cantidad de Registros: 0
-idserial TIPO: INT,  estudianteid TIPO: INT,  universidadid TIPO: INT,  materia TIPO: CHAR(255),  nota TIPO: INT,  fecha_ingreso TIPO: DATE,  
-CONSTRAINTS: 
-CONSTRAINT: pkeyAsignacion P_KEY ( idserial, estudianteid,  )  
- CONSTRAINT: checkNota CHECK ( nota<10 ) 
- 
-
