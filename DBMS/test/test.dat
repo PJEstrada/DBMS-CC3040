@@ -1,0 +1,16 @@
+Base de Datos: test
+Numero Tablas: 2
+
+Tabla: asignacion 
+Cantidad de Registros: 5
+idserial TIPO: INT,  estudianteid TIPO: INT,  universidadid TIPO: INT,  materia TIPO: CHAR(255),  nota TIPO: INT,  
+CONSTRAINTS: 
+CONSTRAINT: asignacion_pkey P_KEY ( materia,  )  
+ 
+Tabla: films 
+Cantidad de Registros: 1
+tittle TIPO: CHAR(255),  release_date TIPO: DATE,  kind TIPO: CHAR(255),  duracion TIPO: INT,  newcol1 TIPO: INT,  
+CONSTRAINTS: 
+CONSTRAINT: films_tittle_fkey F_KEY (tittle, ) REFERENCESasignacion (materia, )  
+ 
+

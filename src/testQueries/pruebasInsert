@@ -68,7 +68,7 @@ INSERT INTO asignacion VALUES (34,34,34,'test34',1);
 INSERT INTO asignacion VALUES (35,35,35,'test35',1);
 INSERT INTO asignacion VALUES (36,36,36,'test36',1);
 INSERT INTO asignacion VALUES (37,37,37,'test37',1);
-INSERT INTO asignacion VALUES (38,38,38,'test38',1);
+INSERT INTO asignacion VALUES (37,37,38,'test38',1);
 INSERT INTO asignacion VALUES (39,39,39,'test39',1);
 INSERT INTO asignacion VALUES (40,40,40,'test40',1);
 INSERT INTO asignacion VALUES (41,41,41,'test41',1);

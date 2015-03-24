@@ -903,7 +903,7 @@ public class Loader extends SQLBaseVisitor<Object>{
            }
             DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
             TablaMetaData tm = bd.findTable(this.tableCreate.name);
-            tm.cantRegistros++;
+            tm.cantRegistros= tm.cantRegistros+i;
             this.tableCreate.guardarTabla();
             DBMS.metaData.writeMetadata();
             DBMS.guardar();                
@@ -1163,22 +1163,27 @@ public class Loader extends SQLBaseVisitor<Object>{
                     Loader.iterador = new IteradorTabla(tempTabla,0);
                     for(Constraint cons: t.constraints){
                         if(cons.tipo==Constraint.PK){
+                             ArrayList<Integer> indices = new ArrayList<Integer>();
+                             ArrayList<Object> pkeyValues = new ArrayList<Object>();
                             //Revisamos que las columnas de la constraint no sean nulas
                             for(Columna c:cons.colsPkeys){
                                 int iValor = t.getIndiceColumna(c.nombre);
+                                indices.add(iValor);
                                 Object v = nuevaTupla.valores.get(iValor);
+                                pkeyValues.add(v);
                                 if(v==null){
                                      Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+">> no puede tener valo nulo por la constraint <<"+cons.nombre+">>");
                                      return "ERRROR";                                     
                                 }
-                                //Revisamos si ya existe el valor en las tuplas de la tabla
-                                boolean yaExiste = t.contieneValor(v, iValor);
-                                if(yaExiste){
-                                     Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+"> Debe tener valor unico por la PK: <<"+cons.nombre+">>");
-                                     return "ERRROR";                                         
-                                }
                             
                             }
+                                
+                            //Revisamos si ya existe el valor en las tuplas de la tabla
+                            boolean yaExiste = t.contieneValor(pkeyValues, indices);
+                            if(yaExiste){
+                                 Frame.jTextArea2.setText("ERROR: la restriccion <<"+cons.nombre+">> esta siendo violada con la insercion. Debe existir valor unico por la PK: <<"+cons.nombre+">>");
+                                 return "ERRROR";                                         
+                            }                            
                         
                         }
                         else if (cons.tipo==Constraint.FK){
