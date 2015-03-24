@@ -2007,11 +2007,22 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             //Una vez tenemos todas las tablas calculamos el producto cartesiano de ellas
             Tabla temp = productoCartesiano(tablasFrom);
+            for(Tupla t: temp.tuplas){
+                System.out.println(t.toString());
+            }
             Loader.iterador = new IteradorTabla(temp,0);
-            //Verificamos que existan las columnas del where en la tabla temporal
-            
-            
+            //Verificamos que existan las columnas del where en la tabla temporal agregandolas a las columnas disponibles
+            this.availableCols = new ArrayList<Columna>();
+            this.availableCols.addAll(colsCreate);
+            Object where1 = visit(ctx.expression());
+            if(where1 instanceof String){
+                return "ERROR";
+            }
+            Expression where = (Expression) where1;           
             //Verificamos que existan las columnas del select en la tabla temporal
+            
+            
+            
             return true;
 	}
 
