@@ -47,6 +47,75 @@ public class Loader extends SQLBaseVisitor<Object>{
         public void error(String s){
             Frame.jTextArea2.setText(s);
         }
+        
+        public Tabla productoCartesiano(ArrayList<Tabla> tablas){
+            Tabla res = new Tabla();
+            res.name = "temp";
+            // Si solo hay una tabla devolvemos la nueva tabla temporal con las mismas tuplas y columnas
+            if(tablas.size()==1){
+                res.tuplas.addAll(tablas.get(0).tuplas);
+                res.columnas.addAll(tablas.get(0).columnas);
+                return res;
+            }
+            else if(tablas.size()==2){
+                //Agregamos todas las columnas de la primera y segunda tabla
+                res.columnas.addAll(tablas.get(0).columnas);
+                res.columnas.addAll(tablas.get(1).columnas);
+                // Combinamos todas las tuplas
+                for(Tupla t1 :tablas.get(0).tuplas){
+                    for(Tupla t2: tablas.get(1).tuplas){
+                        Tupla nuevaTupla = new Tupla(res);
+                        nuevaTupla.valores.addAll(t1.valores);
+                        nuevaTupla.valores.addAll(t2.valores);
+                        res.tuplas.add(nuevaTupla);
+                    }
+                }
+                return res;
+            }
+            else if(tablas.size()>2){
+                //Agregamos las columnas de las n tablas
+                for(Tabla t:tablas){
+                    res.columnas.addAll(t.columnas);
+                }
+                ArrayList<Tupla> tuplasResultantes = new ArrayList<Tupla>();
+                // Combinamos todas las tuplas de las primeras dos tablas
+                for(Tupla t1 :tablas.get(0).tuplas){
+                    for(Tupla t2: tablas.get(1).tuplas){
+                        Tupla nuevaTupla = new Tupla(res);
+                        nuevaTupla.valores.addAll(t1.valores);
+                        nuevaTupla.valores.addAll(t2.valores);
+                        tuplasResultantes.add(nuevaTupla);
+                    }
+                }
+                //Continuamos combinando con el resto de tablas
+                for(int i =2; i<tablas.size();i++){
+                    ArrayList<Tupla> tuplasActuales = new ArrayList<Tupla>();
+                    tuplasActuales.addAll(tablas.get(i).tuplas);
+                    ArrayList<Tupla> tuplasAnteriores = new ArrayList<Tupla>();
+                    tuplasAnteriores.addAll(tuplasResultantes);
+                    tuplasResultantes.clear();
+                    for(Tupla t1: tuplasAnteriores){
+                        for(Tupla t2: tuplasActuales){
+                            Tupla nuevaTupla = new Tupla(res);
+                            nuevaTupla.valores.addAll(t1.valores);
+                            nuevaTupla.valores.addAll(t2.valores);
+                            tuplasResultantes.add(nuevaTupla);
+                        }
+
+                  
+                    
+                    }
+                }
+                res.tuplas.addAll(tuplasResultantes);
+                return res;
+                
+                
+                
+            
+            }
+            else{return null;}
+        
+        }
         public ArrayList<Constraint> obtenerReferenciasDe(String tableName){
             ArrayList<Constraint> res = new ArrayList<Constraint>();
             ArrayList<Constraint> cons = getAllForeignConstraints();
@@ -1923,8 +1992,27 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitSelectStmt(SQLParser.SelectStmtContext ctx) {
-		// TODO Auto-generated method stub
-		return super.visitSelectStmt(ctx);
+            //Primero revisamos las tablas especificadas en el from
+            ArrayList<Tabla> tablasFrom = new ArrayList<Tabla>();
+            for(ParseTree n: ctx.table()){
+                String tableName = n.getText();
+                Tabla t = Tabla.loadTable(tableName);
+                if(t==null){
+                    Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                    return "ERRROR";
+                }
+                else{
+                    tablasFrom.add(t);
+                }  
+            }
+            //Una vez tenemos todas las tablas calculamos el producto cartesiano de ellas
+            Tabla temp = productoCartesiano(tablasFrom);
+            Loader.iterador = new IteradorTabla(temp,0);
+            //Verificamos que existan las columnas del where en la tabla temporal
+            
+            
+            //Verificamos que existan las columnas del select en la tabla temporal
+            return true;
 	}
 
 	@Override

@@ -139,7 +139,7 @@ updateStmt: UPDATE table SET columnsUpdate '=' val (',' columnsUpdate '=' val)* 
 
 deleteStmt: DELETE FROM table (WHERE expression)?;
 
-selectStmt: SELECT ('*'| selectList) FROM table WHERE expression (orderExpr)? ;
+selectStmt: SELECT ('*'| selectList) FROM table(','table)* (WHERE expression)? (orderExpr)? ;
 	selectList: ID(','ID);
 	orderExpr: ORDER BY (orderExpr(','orderExpr)*);
 	orderTerm: colName(ASC|DESC)? ;

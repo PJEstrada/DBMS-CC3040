@@ -1,5 +1,5 @@
 Base de Datos: test
-Numero Tablas: 2
+Numero Tablas: 5
 
 Tabla: asignacion 
 Cantidad de Registros: 5
@@ -13,4 +13,19 @@ Base de Datos: test
 CONSTRAINTS: 
 CONSTRAINT: films_tittle_fkey F_KEY (tittle, ) REFERENCESasignacion (materia, )  
  
+Tabla: A 
+Cantidad de Registros: 3
+a1 TIPO: INT,  a2 TIPO: INT,  a3 TIPO: INT,  
+CONSTRAINTS: 
+
+Tabla: B 
+Cantidad de Registros: 3
+b1 TIPO: INT,  b2 TIPO: INT,  b3 TIPO: INT,  
+CONSTRAINTS: 
+
+Tabla: C 
+Cantidad de Registros: 3
+c1 TIPO: INT,  c2 TIPO: INT,  c3 TIPO: INT,  
+CONSTRAINTS: 
+
 

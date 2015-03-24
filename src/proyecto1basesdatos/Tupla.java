@@ -22,7 +22,11 @@ public class Tupla implements Serializable {
         valores = vals;
         //Agregamos el valor de cada columna uno por uno para verificar constraints y cualquier otra condicion
     }
-    
+    public Tupla( Tabla t){
+        this.tabla=t;
+        valores = new ArrayList<Object>();
+        //Agregamos el valor de cada columna uno por uno para verificar constraints y cualquier otra condicion
+    }    
     public String toString(){
         String s = "";
         for(Object v: valores){
