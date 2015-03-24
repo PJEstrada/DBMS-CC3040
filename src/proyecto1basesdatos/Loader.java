@@ -70,6 +70,41 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             return null;
         }
+        
+        //Metodo
+        public boolean foreignDeleted(Tabla t){
+            boolean encontrada = true;
+            ArrayList<Constraint> referencias = obtenerReferenciasDe(t.name);
+            for(Constraint refCons: referencias){
+                //Para cada referencias primero cargamos la tabla local de la referencia
+                Tabla localTable = Tabla.loadTable(refCons.tabla);
+               //Luego, para cada tupla de la tabla obtenemos las columnas locales y sus valores con localfkey
+                for(Tupla tupla:localTable.tuplas){
+                    ArrayList<Integer> indexBuscar = new ArrayList<Integer>();
+                    ArrayList<Integer> indexT = new ArrayList<Integer>();
+                    ArrayList<Object> valoresActuales = new ArrayList<Object>(); 
+                    for(Columna col: refCons.localFkeys){
+                        int index = localTable.getIndiceColumna(localTable.name);
+                        indexBuscar.add(index);
+                    }
+                    for(int iv: indexBuscar){
+                        valoresActuales.add(tupla.valores.get(iv));
+                    
+                    }
+                    for(Columna c2: refCons.refKeys){
+                        int index2 = t.getIndiceColumna(c2.nombre);
+                        indexT.add(index2);
+                    
+                    }
+                      // Revisamos si los valores de la tupla actual existen en los valores de la tabla de referencia (i.e la mencionada en UPDATE tableName) 
+                    encontrada = t.contieneValor(valoresActuales, indexT);
+                    if(!encontrada)
+                        return encontrada;
+                }
+            } 
+            return encontrada;
+        }
+        
         //Metodo que regresa todas las constraints de las tablas en la base de datos actual
         public ArrayList<Constraint> getAllForeignConstraints(){
              ArrayList<Constraint> result = new ArrayList<Constraint>();
@@ -1551,24 +1586,29 @@ public class Loader extends SQLBaseVisitor<Object>{
             Tabla t = Tabla.loadTable(tablename);
             Loader.iterador = new IteradorTabla(t,0);
             int numDeleted = 0; 
+            
+                        
+            
             if(ctx.children.get(2).getChildCount() == 3){
                 for(Loader.iterador.indiceActual = 0; Loader.iterador.indiceActual< Loader.iterador.tabla.tuplas.size(); Loader.iterador.indiceActual++){
                     //Se revisa que no haya referencia a esta columna antes de eliminar
-                    if(true){
-                        Loader.iterador.deleteValue();
-                        numDeleted++;
-                    }
-                    else{
-                            Frame.jTextArea2.append("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
-                            return "Error";
-                    }
+                    Loader.iterador.deleteValue();
+                    numDeleted++;
                 }
-                t.guardarTabla();
-                DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
-                TablaMetaData t1 = d.findTable(tablename);
-                t1.cantRegistros = 0;
-                DBMS.metaData.writeMetadata();
-                DBMS.guardar();
+                boolean isOk = foreignDeleted(t);
+                if(isOk){
+                    t.guardarTabla();
+                    DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+                    TablaMetaData t1 = d.findTable(tablename);
+                    t1.cantRegistros = 0;
+                    DBMS.metaData.writeMetadata();
+                    DBMS.guardar();
+                }
+                else{
+                        Frame.jTextArea2.append("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                        return "Error";
+                }
+                
             }
             //para cuando tiene where
             else if(ctx.children.get(2).getChildCount() == 5){
@@ -1580,25 +1620,32 @@ public class Loader extends SQLBaseVisitor<Object>{
                         return "ERROR";
                     }
                     //Si no es string se castea
-                    boolean pass = (boolean)isTrueHere;
-                    //Se revisa que no haya referencia a esta columna antes de eliminar
-                    if(pass){
-                        if(true){
+                    Expression pass = (Expression)isTrueHere;
+                    
+                    try {
+                        //Se revisa que no haya referencia a esta columna antes de eliminar
+                        if(pass.isTrue()){
                             Loader.iterador.deleteValue();
                             numDeleted++;
+
                         }
-                        else{
-                            Frame.jTextArea2.append("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
-                            return "Error";
-                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                t.guardarTabla();
-                DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
-                TablaMetaData t1 = d.findTable(tablename);
-                t1.cantRegistros = t1.cantRegistros - numDeleted;
-                DBMS.metaData.writeMetadata();
-                DBMS.guardar();
+                boolean isOk = foreignDeleted(t);
+                if(isOk){
+                    t.guardarTabla();
+                    DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+                    TablaMetaData t1 = d.findTable(tablename);
+                    t1.cantRegistros = 0;
+                    DBMS.metaData.writeMetadata();
+                    DBMS.guardar();
+                }
+                else{
+                        Frame.jTextArea2.append("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                        return "Error";
+                }
             }
             Frame.jTextArea2.append("\nAVISO: Se han eliminado "+numDeleted +" registros.");
             return super. visitDeleteStmt(ctx);
