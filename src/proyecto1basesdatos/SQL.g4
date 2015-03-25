@@ -141,7 +141,7 @@ deleteStmt: DELETE FROM table (WHERE expression)?;
 
 selectStmt: SELECT ('*'| selectList) FROM table(','table)* (WHERE expression)? (orderExpr)? ;
 	selectList: ID(','ID);
-	orderExpr: ORDER BY (orderExpr(','orderExpr)*);
+	orderExpr: ORDER BY (orderTerm(','orderTerm)*);
 	orderTerm: colName(ASC|DESC)? ;
 	
 	
