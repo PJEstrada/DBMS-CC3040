@@ -89,7 +89,7 @@ public class Resultados {
         frame.setSize(460,180);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JScrollPane  scroll = new JScrollPane(table);
-        table.setPreferredScrollableViewportSize(new Dimension(420, 60));
+        table.setPreferredScrollableViewportSize(new Dimension(420, 100));
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         frame.add(scroll);
         frame.setVisible(true);
