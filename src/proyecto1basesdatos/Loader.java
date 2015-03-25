@@ -2148,16 +2148,21 @@ public class Loader extends SQLBaseVisitor<Object>{
             
             //Verificamos que existan las columnas del select en la tabla temporal
             ArrayList<Columna> colsSelect = new ArrayList<Columna>();
-            for(ParseTree n: ctx.selectList().ID()){
-                String col = n.getText();
-                Columna existe = findCol(col,temp.columnas);
-                colsSelect.add(existe);
-                if(existe == null){
-                    Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+col);
-                    return "ERROR";
-                }
+            if(ctx.selectList().ID()!=null){
+                for(ParseTree n: ctx.selectList().ID()){
+                    String col = n.getText();
+                    Columna existe = findCol(col,temp.columnas);
+                    colsSelect.add(existe);
+                    if(existe == null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+col);
+                        return "ERROR";
+                    }
 
-            }            
+                } 
+            }
+            else{
+                colsSelect.addAll(temp.columnas);
+            }
             //Obtenemos los indices de las columnas del select
             ArrayList<Integer> indexSelect = new ArrayList<Integer>();
             for(Columna c: colsSelect){
