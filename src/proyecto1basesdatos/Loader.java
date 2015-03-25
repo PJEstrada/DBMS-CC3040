@@ -2148,7 +2148,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             
             //Verificamos que existan las columnas del select en la tabla temporal
             ArrayList<Columna> colsSelect = new ArrayList<Columna>();
-            if(ctx.selectList().ID()!=null){
+            if(ctx.selectList()!=null){
                 for(ParseTree n: ctx.selectList().ID()){
                     String col = n.getText();
                     Columna existe = findCol(col,temp.columnas);
@@ -2219,7 +2219,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             for(Tupla tN : temp.tuplas){
                 ArrayList<String> tempFill = new ArrayList();
                 for(Object ob : tN.valores){
-                    tempFill.add((String)ob);
+                    tempFill.add(((String)ob.toString()));
                 }
                 dataToFill.add(tempFill);
             }
