@@ -11,6 +11,8 @@ package proyecto1basesdatos;
  * @author Al
  */
 import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -132,12 +134,31 @@ public class Frame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        String[] wordsNot = {"CREATE","DATABASE", "DATABASES", "ALTER", "DROP", "SHOW", "USE", "TABLE", "INT", "FLOAT",
+                              "DATE", "CHAR", "CONSTRAINT", "PRIMARY", "KEY", "FOREIGN", "CHECK", "REFERENCES", "TABLES",
+                                "COLUMN", "FROM", "ADD", "AND", "OR", "NOT", "INSERT", "INTO", "WHERE", "UPDATE", "SET",
+                                "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO"};
+        
+        ArrayList<String> wordsR = new ArrayList<String>( Arrays.asList(wordsNot));
+        
         String src = jTextArea1.getText();
         src+=" ";
+        String srcFinal = "";
+        String [] checkA = src.split(" ");
+        for (int i = 0; i< checkA.length; i++){
+            String tempW = checkA[i].toUpperCase();
+            if (wordsR.contains(tempW)){
+                srcFinal += tempW + " ";
+            }
+            else{
+                srcFinal += checkA[i] + " ";
+            }
+        }
+        System.out.println(srcFinal);
         jTextArea2.setText("");
         this.error=false;
         try{
-            SQLLexer lexer  = new SQLLexer(new ANTLRInputStream(src));
+            SQLLexer lexer  = new SQLLexer(new ANTLRInputStream(srcFinal));
             //lexer.removeErrorListeners();
             //lexer.addErrorListener(new ThrowingErrorListener(this));        
             TokenStream tokenStream = new CommonTokenStream(lexer);
