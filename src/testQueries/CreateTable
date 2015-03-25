@@ -9,9 +9,10 @@ CREATE TABLE asignacion
   CONSTRAINT checkNota CHECK ((nota<100) )
 )
 
-CREATE TABLE A
+CREATE TABLE A1
 (
   idSerial INT,
+  idserial INT
   estudiante INT,
 
   CONSTRAINT pkeyA PRIMARY KEY (idSerial)

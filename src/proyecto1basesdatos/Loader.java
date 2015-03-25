@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import javax.swing.JTextArea;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
+import proyecto1basesdatos.SQLParser.OrderTermContext;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -2013,14 +2014,75 @@ public class Loader extends SQLBaseVisitor<Object>{
             Loader.iterador = new IteradorTabla(temp,0);
             //Verificamos que existan las columnas del where en la tabla temporal agregandolas a las columnas disponibles
             this.availableCols = new ArrayList<Columna>();
-            this.availableCols.addAll(colsCreate);
+            this.availableCols.addAll(temp.columnas);
             Object where1 = visit(ctx.expression());
             if(where1 instanceof String){
                 return "ERROR";
             }
-            Expression where = (Expression) where1;           
+            Expression where = (Expression) where1; 
+            ArrayList<Tupla> resultSelect = new ArrayList<Tupla>();         
             //Verificamos que existan las columnas del select en la tabla temporal
+            ArrayList<Columna> colsSelect = new ArrayList<Columna>();
+            for(ParseTree n: ctx.selectList().ID()){
+                String col = n.getText();
+                Columna existe = findCol(col,temp.columnas);
+                colsSelect.add(existe);
+                if(existe == null){
+                    Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+col);
+                    return "ERROR";
+                }
+                
+            }
+            for(int j =0;j<Loader.iterador.tabla.tuplas.size();j++){
+                Tupla tuplaActual = Loader.iterador.tabla.tuplas.get(j);
+                try {
+                    if(where.isTrue()){
+                        resultSelect.add(tuplaActual);
+                     
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                Loader.iterador.siguiente(); //Movemos el iterador a la siguiente tupla
+            }   
+            //Obtenemos los indices de las columnas del select
+            ArrayList<Integer> indexSelect = new ArrayList<Integer>();
+            for(Columna c: colsSelect){
+                int indice = temp.getIndiceColumna(c.nombre);
+                indexSelect.add(indice);
             
+            }
+            //Agregamos al resultado final solo las columnas del select
+            ArrayList<Object> resultadoFinal = new ArrayList<Object>();
+            for(Tupla t : resultSelect){
+                Tupla tfinal = new Tupla(temp);
+                for(int i:indexSelect){
+                    Object valor = t.valores.get(i);
+                    resultadoFinal.add(valor);
+                
+                }
+                resultadoFinal.add(tfinal);
+            
+            }
+            if(ctx.orderExpr()!=null){
+                for(OrderTermContext n: ctx.orderExpr().orderTerm()){
+                    String colName = n.colName().getText();
+                    String order = "";
+                    if(n.ASC()==null && n.DESC()==null){
+                        order = "ASC";
+                    }
+                    else if(n.ASC()!=null){
+                        order = "ASC";
+                    }
+                    else if(n.DESC()!=null){
+                        order = "DESC";
+                    }
+                    
+                }
+            
+            
+            }
+            //Agregamos el resultado al JTable (pendiente)
             
             
             return true;

@@ -1,5 +1,6 @@
 // Generated from SQL.g4 by ANTLR 4.4
 package proyecto1basesdatos;
+
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -3175,13 +3176,13 @@ public class SQLParser extends Parser {
 
 	public static class OrderExprContext extends ParserRuleContext {
 		public TerminalNode ORDER() { return getToken(SQLParser.ORDER, 0); }
-		public List<OrderExprContext> orderExpr() {
-			return getRuleContexts(OrderExprContext.class);
+		public List<OrderTermContext> orderTerm() {
+			return getRuleContexts(OrderTermContext.class);
+		}
+		public OrderTermContext orderTerm(int i) {
+			return getRuleContext(OrderTermContext.class,i);
 		}
 		public TerminalNode BY() { return getToken(SQLParser.BY, 0); }
-		public OrderExprContext orderExpr(int i) {
-			return getRuleContext(OrderExprContext.class,i);
-		}
 		public OrderExprContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -3204,29 +3205,27 @@ public class SQLParser extends Parser {
 	public final OrderExprContext orderExpr() throws RecognitionException {
 		OrderExprContext _localctx = new OrderExprContext(_ctx, getState());
 		enterRule(_localctx, 100, RULE_orderExpr);
+		int _la;
 		try {
-			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(482); match(ORDER);
 			setState(483); match(BY);
 			{
-			setState(484); orderExpr();
+			setState(484); orderTerm();
 			setState(489);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,33,_ctx);
-			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
-				if ( _alt==1 ) {
-					{
-					{
-					setState(485); match(T__3);
-					setState(486); orderExpr();
-					}
-					} 
+			_la = _input.LA(1);
+			while (_la==T__3) {
+				{
+				{
+				setState(485); match(T__3);
+				setState(486); orderTerm();
+				}
 				}
 				setState(491);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,33,_ctx);
+				_la = _input.LA(1);
 			}
 			}
 			}
@@ -3485,8 +3484,8 @@ public class SQLParser extends Parser {
 		"\u01dc\5> \2\u01db\u01d9\3\2\2\2\u01db\u01dc\3\2\2\2\u01dc\u01de\3\2\2"+
 		"\2\u01dd\u01df\5f\64\2\u01de\u01dd\3\2\2\2\u01de\u01df\3\2\2\2\u01dfc"+
 		"\3\2\2\2\u01e0\u01e1\79\2\2\u01e1\u01e2\7\13\2\2\u01e2\u01e3\79\2\2\u01e3"+
-		"e\3\2\2\2\u01e4\u01e5\7\61\2\2\u01e5\u01e6\7\62\2\2\u01e6\u01eb\5f\64"+
-		"\2\u01e7\u01e8\7\13\2\2\u01e8\u01ea\5f\64\2\u01e9\u01e7\3\2\2\2\u01ea"+
+		"e\3\2\2\2\u01e4\u01e5\7\61\2\2\u01e5\u01e6\7\62\2\2\u01e6\u01eb\5h\65"+
+		"\2\u01e7\u01e8\7\13\2\2\u01e8\u01ea\5h\65\2\u01e9\u01e7\3\2\2\2\u01ea"+
 		"\u01ed\3\2\2\2\u01eb\u01e9\3\2\2\2\u01eb\u01ec\3\2\2\2\u01ecg\3\2\2\2"+
 		"\u01ed\u01eb\3\2\2\2\u01ee\u01f0\5\34\17\2\u01ef\u01f1\t\4\2\2\u01f0\u01ef"+
 		"\3\2\2\2\u01f0\u01f1\3\2\2\2\u01f1i\3\2\2\2%lx\u009c\u00a4\u00a7\u00b7"+

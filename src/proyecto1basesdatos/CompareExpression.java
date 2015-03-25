@@ -38,7 +38,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    return l.equals(r);
+                    return l.equalsIgnoreCase(r);
                 }
                 
                 else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
@@ -57,7 +57,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof Date){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    if(l.equals(r)){
+                    if(l.equalsIgnoreCase(r)){
                         return true;
                     }
                     else{return false;}
@@ -65,7 +65,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof Date && right.getValue() instanceof String){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    if(l.equals(r)){
+                    if(l.equalsIgnoreCase(r)){
                         return true;
                     }
                     else{return false;}               
@@ -100,7 +100,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    return !l.equals(r);
+                    return !l.equalsIgnoreCase(r);
                 }
                 
                 else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
@@ -120,7 +120,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof Date){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    if(l.equals(r)){
+                    if(l.equalsIgnoreCase(r)){
                         return false;
                     }
                     else{return true;}
@@ -128,7 +128,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof Date && right.getValue() instanceof String){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    if(l.equals(r)){
+                    if(l.equalsIgnoreCase(r)){
                         return false;
                     }
                     else{return true;}               
@@ -163,7 +163,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare>0){return true;}
                     else if(compare<0||compare==0){return false;}
                 }
@@ -184,7 +184,7 @@ public class CompareExpression extends Expression implements Serializable{
                else if(left.getValue() instanceof String && right.getValue() instanceof Date){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare>0){
                         return true;
                     }
@@ -193,7 +193,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof Date && right.getValue() instanceof String){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare>0){
                         return true;
                     }
@@ -228,7 +228,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare>0||compare==0){return true;}
                     else if(compare<0){return false;}
                 }
@@ -249,7 +249,7 @@ public class CompareExpression extends Expression implements Serializable{
                else if(left.getValue() instanceof String && right.getValue() instanceof Date){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare>0||compare==0){
                         return true;
                     }
@@ -258,7 +258,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof Date && right.getValue() instanceof String){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare>0||compare==0){
                         return true;
                     }
@@ -294,7 +294,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare<0){return true;}
                     else if(compare>0||compare==0){return false;}
                 }
@@ -316,7 +316,7 @@ public class CompareExpression extends Expression implements Serializable{
                else if(left.getValue() instanceof String && right.getValue() instanceof Date){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare<0){
                         return true;
                     }
@@ -325,7 +325,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof Date && right.getValue() instanceof String){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare<0){
                         return true;
                     }
@@ -362,7 +362,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof String && right.getValue() instanceof String){
                     String l = (String) left.getValue();
                     String r = (String) right.getValue();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare<0|| compare==0){return true;}
                     else if(compare>0){return false;}
                 }
@@ -384,7 +384,7 @@ public class CompareExpression extends Expression implements Serializable{
                else if(left.getValue() instanceof String && right.getValue() instanceof Date){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare<0||compare==0){
                         return true;
                     }
@@ -393,7 +393,7 @@ public class CompareExpression extends Expression implements Serializable{
                 else if(left.getValue() instanceof Date && right.getValue() instanceof String){
                     String l = left.getValue().toString();
                     String r = right.getValue().toString();
-                    int compare = l.compareTo(r);
+                    int compare = l.compareToIgnoreCase(r);
                     if(compare<0||compare==0){
                         return true;
                     }
