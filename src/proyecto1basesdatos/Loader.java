@@ -2115,19 +2115,31 @@ public class Loader extends SQLBaseVisitor<Object>{
             for(Tupla t: temp.tuplas){
                 System.out.println(t.toString());
             }
-            Orders o1 = new Orders("A1","ASC");
+            
+            Loader.iterador = new IteradorTabla(temp,0);
+            //Verificamos que existan las columnas del where en la tabla temporal agregandolas a las columnas disponibles
+            this.availableCols = new ArrayList<Columna>();
+            this.availableCols.addAll(temp.columnas);
+            Object where1 = visit(ctx.expression());
+            if(where1 instanceof String){
+                return "ERROR";
+            }
+            Expression where = (Expression) where1;          
+            //Verificamos que existan las columnas del select en la tabla temporal
+            
+            //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos
+            Orders o1 = new Orders("c1","ASC");
+            Orders o2 = new Orders("b1", "DESC");
             ArrayList<Orders> orderBy = new ArrayList();
             orderBy.add(o1);
-            
+            orderBy.add(o2);
             ComparatorColumn com = new ComparatorColumn(temp, orderBy);
-            for(Tupla t: com.myTable.tuplas){
+            com.order();
+            System.out.println("--------------------------------");
+            for(Tupla t: temp.tuplas){
                 System.out.println(t.toString());
             }
-            Loader.iterador = new IteradorTabla(temp,0);
-            //Verificamos que existan las columnas del where en la tabla temporal
             
-            
-            //Verificamos que existan las columnas del select en la tabla temporal
             return true;
 	}
 

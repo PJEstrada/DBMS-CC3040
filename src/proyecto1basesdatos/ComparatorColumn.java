@@ -7,6 +7,7 @@ package proyecto1basesdatos;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  *
@@ -19,13 +20,15 @@ public class ComparatorColumn {
     ArrayList<Tupla> toSort;
     int indexColumn;
     int typeToSort;
-    ArrayList<Integer> indexSame;
+    ArrayList<ArrayList<Integer>> indexSame;
     ArrayList<ArrayList<Tupla>> miTuplas;
     
     public ComparatorColumn(Tabla myTable, ArrayList<Orders> orderBy){
         this.myTable = myTable;
         this.orderBy = orderBy;
         indexSame = new ArrayList();
+        miTuplas = new ArrayList();
+        toSort = new ArrayList();
     }
     
     public void order(){  //------------>ESTE METODO SOLO LOS ORDENA DE FORMA ASCEDENTE PERO SOLO ES DE DARLE VUELTA CUANDO SEA DESCEDENTE Y YA :D    
@@ -36,16 +39,21 @@ public class ComparatorColumn {
         int high = toSort.size()-1;
         //Nombre de la columna que se debe arreglar de primero
         String columnWork = orderBy.get(0).column;
+        String howToOrder = orderBy.get(0).order;
         //Se dan el typeSort y el indice de la columna
         indexColumn = tempTable.getIndiceColumna(columnWork);
         typeToSort = tempTable.columnas.get(indexColumn).tipo;
         quickSortTupla(toSort,low,high);
+        if(howToOrder.equals("DESC")){
+            Collections.reverse(toSort);
+        }
         //Se ve si hay mas orders a seguir
         if(orderBy.size()>=2){
             for(int i = 1; i<orderBy.size(); i++){
                 lookForRepets(toSort);
                 constructMiniTable();
                 columnWork = orderBy.get(i).column;
+                howToOrder = orderBy.get(i).order;
                 indexColumn = tempTable.getIndiceColumna(columnWork);
                 typeToSort = tempTable.columnas.get(indexColumn).tipo;
                 //Se recorren todas las secciones que necesitan ser reeordenas
@@ -53,63 +61,62 @@ public class ComparatorColumn {
                     int lowH = 0;
                     int highH = mT.size()-1;
                     quickSortTupla(mT,lowH,highH);
+                    if(howToOrder.equals("DESC")){
+                        Collections.reverse(mT);
+                    }
                     //Se sustituyen el mT en toSort
                     for(int j = 0; j<mT.size(); j++){
-                        int toDo = indexSame.get(j);
+                        int toDo = indexSame.get(0).get(j);
                         toSort.set(toDo, mT.get(j));
-                        indexSame.remove(j);
+                        //indexSame.get(0).remove(j);
                     }
+                    indexSame.remove(0);
                 }
-                indexSame.clear();
+                indexSame = new ArrayList();
             }
         }
-        myTable.tuplas.clear();
+        myTable.tuplas = new ArrayList();
         myTable.tuplas.addAll(toSort);
     }
     
+    
     public void lookForRepets(ArrayList<Tupla> toLook){
         if(indexSame != null){
-            indexSame.clear();
+            indexSame = new ArrayList();
         }
+        ArrayList<Integer> temp = new ArrayList();
         for (int i = 0; i<toLook.size()-1; i++){
             Tupla compare1 = toLook.get(i);
             Tupla compare2 = toLook.get(i+1);
             int resultVal = giveNewOrder(typeToSort, compare1, compare2, indexColumn, "ASC");
             if (resultVal == 0){
-                indexSame.add(i);
-                indexSame.add(i+1);
+                temp.add(i);
+                temp.add(i+1);
             }
+            else
+            {
+                if(temp.size()!=0){
+                    indexSame.add(temp);
+                    temp = new ArrayList();
+                }
+            }
+        }
+        if(!temp.isEmpty()){
+            indexSame.add(temp);
         }
     }
     
     public void constructMiniTable(){
         
         //Se recorren la lista los repetidos
-        int num = 0;
         int indexB =0;
         int indexF = 0;
-        ArrayList<Tupla> temp = new ArrayList();
-        while (num < indexSame.size()){
-            if(num == indexSame.size()-1){
-                temp.add(toSort.get(num));
-                miTuplas.add(temp);
-                num++;
-                continue;
-            }
-            if(temp.size() == 0){
-                indexB = num;
-            }
-            if(indexSame.get(num)+1 == indexSame.get(num+1)){
+        for(ArrayList<Integer> arrI : indexSame){
+            ArrayList<Tupla> temp = new ArrayList();
+            for(int num : arrI){
                 temp.add(toSort.get(num));
             }
-            else
-            {
-                temp.add(toSort.get(num));
-                miTuplas.add(temp);
-                temp.clear();
-                indexF = num;
-            }
-            num++;
+            miTuplas.add(temp);
         }
     }
     
