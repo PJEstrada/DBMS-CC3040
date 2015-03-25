@@ -2015,12 +2015,31 @@ public class Loader extends SQLBaseVisitor<Object>{
             //Verificamos que existan las columnas del where en la tabla temporal agregandolas a las columnas disponibles
             this.availableCols = new ArrayList<Columna>();
             this.availableCols.addAll(temp.columnas);
-            Object where1 = visit(ctx.expression());
-            if(where1 instanceof String){
-                return "ERROR";
+            ArrayList<Tupla> resultSelect = new ArrayList<Tupla>(); 
+            //Inicialmente agregamos al resultado toda la tabla, si hay where la vaciamos 
+            resultSelect.addAll(temp.tuplas);
+            if(ctx.WHERE()!=null){
+                resultSelect = new ArrayList<Tupla>();
+                Object where1 = visit(ctx.expression());
+                if(where1 instanceof String){
+                    return "ERROR";
+                }
+                Expression where = (Expression) where1; 
+                      
+                for(int j =0;j<Loader.iterador.tabla.tuplas.size();j++){
+                    Tupla tuplaActual = Loader.iterador.tabla.tuplas.get(j);
+                    try {
+                        if(where.isTrue()){
+                            resultSelect.add(tuplaActual);
+
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    Loader.iterador.siguiente(); //Movemos el iterador a la siguiente tupla
+                }
             }
-            Expression where = (Expression) where1; 
-            ArrayList<Tupla> resultSelect = new ArrayList<Tupla>();         
+            
             //Verificamos que existan las columnas del select en la tabla temporal
             ArrayList<Columna> colsSelect = new ArrayList<Columna>();
             for(ParseTree n: ctx.selectList().ID()){
@@ -2031,20 +2050,8 @@ public class Loader extends SQLBaseVisitor<Object>{
                     Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+col);
                     return "ERROR";
                 }
-                
-            }
-            for(int j =0;j<Loader.iterador.tabla.tuplas.size();j++){
-                Tupla tuplaActual = Loader.iterador.tabla.tuplas.get(j);
-                try {
-                    if(where.isTrue()){
-                        resultSelect.add(tuplaActual);
-                     
-                    }
-                } catch (Exception ex) {
-                    Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                Loader.iterador.siguiente(); //Movemos el iterador a la siguiente tupla
-            }   
+
+            }            
             //Obtenemos los indices de las columnas del select
             ArrayList<Integer> indexSelect = new ArrayList<Integer>();
             for(Columna c: colsSelect){
