@@ -11,11 +11,15 @@ package proyecto1basesdatos;
  * @author Al
  * FileChooser para guardar adaptado de http://stackoverflow.com/questions/9730635/saving-with-a-jfilechooser
  */
+import java.awt.Component;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,6 +41,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import javax.swing.text.BadLocationException;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -48,6 +53,7 @@ public class Frame extends javax.swing.JFrame {
 
     JFileChooser jfc;
     private TextLineNumber lineNumber;
+    private JFileChooser chooser;
     private boolean docUpdate = false;
     private String default_filename = "default.sql";
     private String default_directory = "/home/foo/workspace";
@@ -196,6 +202,7 @@ public class Frame extends javax.swing.JFrame {
         String [] checkA = src.split(" ");
         for (String checkA1 : checkA) {
             String tempW = checkA1.toUpperCase();
+            tempW = tempW.replaceAll("\\s+", "");
             if (wordsR.contains(tempW)) {
                 srcFinal += tempW + " ";
             } else {
@@ -271,11 +278,41 @@ public class Frame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
+        String inputBoton="";
+        chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                    "PY and Text", "py", "txt");
+        chooser.setFileFilter(filter);
+        //chooser.showOpenDialog(null);
+        int result = chooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = chooser.getSelectedFile();
+                BufferedReader br = null;
+                try {
+                        br = new BufferedReader(new FileReader(selectedFile));
+                } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                }
+                String st = "";
+                inputBoton = "";
+                try {
+                        while((st = br.readLine()) != null){
+                                inputBoton+=st+"\n";
+
+                        }
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+        }
+        jTextArea1.setText(inputBoton);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        jTextArea1.setText("");
+        jTextArea2.setText("");
+        for(Component i: forResults.getComponents()){
+           forResults.remove(i);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
