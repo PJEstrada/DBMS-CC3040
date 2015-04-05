@@ -8,8 +8,11 @@ package proyecto1basesdatos;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.ScrollPane;
 import java.util.ArrayList;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
@@ -18,7 +21,8 @@ import javax.swing.ListSelectionModel;
  *
  * @author usuario
  */
-public class Resultados {
+public class Resultados extends ScrollPane{
+    JPanel panel = new JPanel();
     
     //Esta solamente sera una fila con los nombres de cada dato
     ArrayList<String> columnas = new ArrayList<String>();
@@ -46,7 +50,7 @@ public class Resultados {
             filasT[i] = filaI;
         }
         table = new JTable(filasT, dataC);
-        if(columnas2.size()>0 && datos2.size()>0)
+        if(columnas2.size()>=0 && datos2.size()>=0)
         {
             dataC = new String[columnas2.size()];
             dataC = columnas2.toArray(dataC); 
@@ -65,6 +69,7 @@ public class Resultados {
     //Constructor para cuando solo son datos en una tabla
     public Resultados(ArrayList<String> columnas, ArrayList<ArrayList<String>>datos)
     {
+        //panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         this.columnas = columnas;
         this.datos = datos;
         fillData();
@@ -84,20 +89,26 @@ public class Resultados {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Frame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        JFrame frame = new JFrame("Resultados");
+        /*JFrame frame = new JFrame("Resultados");
         frame.setLayout(new FlowLayout());
         frame.setSize(460,180);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JScrollPane  scroll = new JScrollPane(table);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);*/
         table.setPreferredScrollableViewportSize(new Dimension(420, 100));
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        frame.add(scroll);
-        frame.setVisible(true);
+        JScrollPane  scroll = new JScrollPane(table);
+        panel.add(scroll);
+        add(panel);
+        /*Frame.forResults.add(scroll);
+        Frame.forResults.revalidate();
+        Frame.forResults.repaint();*/
+        /*frame.add(scroll);
+        frame.setVisible(true);*/
     }
     
     //Constructor para cuando son datos en dos tablas
     public Resultados(ArrayList<String> columnas1, ArrayList<ArrayList<String>>datos1, ArrayList<String> columnas2, ArrayList<ArrayList<String>>datos2)
     {
+        //panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         this.columnas = columnas1;
         this.datos = datos1;
         this.columnas2 = columnas2;
@@ -119,19 +130,24 @@ public class Resultados {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Frame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        JFrame frame = new JFrame("Resultados");
+        /*JFrame frame = new JFrame("Resultados");
         frame.setLayout(new FlowLayout());
         frame.setSize(920,360);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JScrollPane  scroll = new JScrollPane(table);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);*/
         table.setPreferredScrollableViewportSize(new Dimension(420, 200));
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane  scroll2 = new JScrollPane(table2);
+        JScrollPane  scroll = new JScrollPane(table);
+        
         table2.setPreferredScrollableViewportSize(new Dimension(420, 200));
         table2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        frame.add(scroll);
+        JScrollPane  scroll2 = new JScrollPane(table2);
+        
+        panel.add(scroll);
+        panel.add(scroll2);
+        add(panel);
+        /*frame.add(scroll);
         frame.add(scroll2);
-        frame.setVisible(true);
+        frame.setVisible(true);*/
     }
     
 }

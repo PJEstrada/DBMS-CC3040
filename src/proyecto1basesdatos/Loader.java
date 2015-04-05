@@ -1,5 +1,6 @@
 package proyecto1basesdatos;
 
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -594,6 +595,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 filas.add(temp);
             }
             Resultados results = new Resultados(encabezado, filas);
+            for(Component i: Frame.forResults.getComponents()){
+                Frame.forResults.remove(i);
+            }
+            Frame.forResults.add(results);
+            Frame.forResults.revalidate();
+            Frame.forResults.repaint();
             return super.visitShowTableStmt(ctx);
 	}
 
@@ -633,6 +640,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                 filas2.add(temp);
             }
             Resultados result = new Resultados(titulos1,filas1,titulos2,filas2);
+            for(Component i: Frame.forResults.getComponents()){
+                Frame.forResults.remove(i);
+            }
+            
+            Frame.forResults.add(result);
+            Frame.forResults.revalidate();
+            Frame.forResults.repaint();
             return super.visitShowColumnsStmt(ctx);
 	}
 
@@ -1801,6 +1815,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 filas.add(tempFila);
             }
             Resultados results = new Resultados(tituloColumnas, filas);
+            for(Component i: Frame.forResults.getComponents()){
+                Frame.forResults.remove(i);
+            }
+            Frame.forResults.add(results);
+            Frame.forResults.revalidate();
+            Frame.forResults.repaint();
             return super.visitShowDbStmt(ctx);
 	}
 
@@ -2224,6 +2244,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 dataToFill.add(tempFill);
             }
             Resultados newResult = new Resultados(columnsName,dataToFill);
+            for(Component i: Frame.forResults.getComponents()){
+                Frame.forResults.remove(i);
+            }
+            Frame.forResults.add(newResult);
+            Frame.forResults.revalidate();
+            Frame.forResults.repaint();
             return true;
 	}
 
