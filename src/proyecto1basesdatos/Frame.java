@@ -172,19 +172,18 @@ public class Frame extends javax.swing.JFrame {
                                 "COLUMN", "FROM", "ADD", "AND", "OR", "NOT", "INSERT", "INTO", "WHERE", "UPDATE", "SET",
                                 "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO"};
         
-        ArrayList<String> wordsR = new ArrayList<String>( Arrays.asList(wordsNot));
+        ArrayList<String> wordsR = new ArrayList( Arrays.asList(wordsNot));
         
         String src = jTextArea1.getText();
-        src+=" ";
+        //src+=" ";
         String srcFinal = "";
         String [] checkA = src.split(" ");
-        for (int i = 0; i< checkA.length; i++){
-            String tempW = checkA[i].toUpperCase();
-            if (wordsR.contains(tempW)){
+        for (String checkA1 : checkA) {
+            String tempW = checkA1.toUpperCase();
+            if (wordsR.contains(tempW)) {
                 srcFinal += tempW + " ";
-            }
-            else{
-                srcFinal += checkA[i] + " ";
+            } else {
+                srcFinal += checkA1 + " ";
             }
         }
         System.out.println("El final es "+srcFinal);
@@ -199,9 +198,9 @@ public class Frame extends javax.swing.JFrame {
             SQLParser parser = new SQLParser(tokenStream);
             parser.removeErrorListeners();
             parser.addErrorListener(new ThrowingErrorListener(this));
-            //parser.query().inspect(parser);
+            parser.query().inspect(parser);
             if (!error) {
-                dbms.executeQuery(src);
+                dbms.executeQuery(srcFinal);
                 System.out.print("  ");
             }            
         }
