@@ -12,7 +12,10 @@ package proyecto1basesdatos;
  * FileChooser para guardar adaptado de http://stackoverflow.com/questions/9730635/saving-with-a-jfilechooser
  */
 import java.awt.Component;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -89,6 +92,9 @@ public class Frame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+	
+		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new MyDispatcher());
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
 		lineNumber = new TextLineNumber(jTextArea1);
@@ -235,7 +241,7 @@ public class Frame extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_jButton2ActionPerformed
-
+    
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         jfc = new JFileChooser();
         jfc.setCurrentDirectory(new File(default_directory));
@@ -281,7 +287,7 @@ public class Frame extends javax.swing.JFrame {
         String inputBoton="";
         chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                    "PY and Text", "py", "txt");
+                    "SQL and Text", "sql", "txt");
         chooser.setFileFilter(filter);
         //chooser.showOpenDialog(null);
         int result = chooser.showOpenDialog(null);
@@ -314,7 +320,60 @@ public class Frame extends javax.swing.JFrame {
            forResults.remove(i);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
+    
+    private class MyDispatcher implements KeyEventDispatcher {
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent e) {
+            if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode()== KeyEvent.VK_F5) {
+                
+                String[] wordsNot = {"CREATE","DATABASE", "DATABASES", "ALTER", "DROP", "SHOW", "USE", "TABLE", "INT", "FLOAT",
+                              "DATE", "CHAR", "CONSTRAINT", "PRIMARY", "KEY", "FOREIGN", "CHECK", "REFERENCES", "TABLES",
+                                "COLUMN", "FROM", "ADD", "AND", "OR", "NOT", "INSERT", "INTO", "WHERE", "UPDATE", "SET",
+                                "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO"};
+        
+                ArrayList<String> wordsR = new ArrayList( Arrays.asList(wordsNot));
 
+                String src = jTextArea1.getText();
+                //src+=" ";
+                String srcFinal = "";
+                String [] checkA = src.split(" ");
+                for (String checkA1 : checkA) {
+                    String tempW = checkA1.toUpperCase();
+                    tempW = tempW.replaceAll("\\s+", "");
+                    if (wordsR.contains(tempW)) {
+                        srcFinal += tempW + " ";
+                    } else {
+                        srcFinal += checkA1 + " ";
+                    }
+                }
+                System.out.println("El final es "+srcFinal);
+                jTextArea2.setText("");
+                Frame.this.error=false;
+                try{
+                    SQLLexer lexer  = new SQLLexer(new ANTLRInputStream(srcFinal));
+                    //lexer.removeErrorListeners();
+                    //lexer.addErrorListener(new ThrowingErrorListener(this));        
+                    TokenStream tokenStream = new CommonTokenStream(lexer);
+
+                    SQLParser parser = new SQLParser(tokenStream);
+                    parser.removeErrorListeners();
+                    parser.addErrorListener(new ThrowingErrorListener(Frame.this));
+                    parser.query().inspect(parser);
+                    if (!error) {
+                        dbms.executeQuery(srcFinal);
+                        System.out.print("  ");
+                    }            
+                }
+
+                catch(Exception ex){
+                    jTextArea2.setText(ex.getMessage());
+                    ex.printStackTrace();
+
+                }
+            }
+            return false;
+        }
+    }
     /**
      * @param args the command line arguments
      */
