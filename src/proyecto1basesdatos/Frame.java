@@ -47,6 +47,8 @@ public class Frame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea jTextArea1;
     public static javax.swing.JTextArea jTextArea2;
+	TextLineNumber lineNumber;
+		
     // End of variables declaration//GEN-END:variables
     public boolean error;
     public DBMS dbms;
@@ -63,6 +65,8 @@ public class Frame extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+	
+		
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
@@ -71,6 +75,8 @@ public class Frame extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+		lineNumber = new TextLineNumber(jTextArea1);
+		jScrollPane1.setRowHeaderView( lineNumber );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -180,40 +186,6 @@ public class Frame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    
-    private class LineNumberModelImpl implements NumeroLineaModel{
-
-
-
-		@Override
-
-		public int getNumberLines() {
-
-			return jTextArea1.getLineCount();
-
-		}
-
-
-
-		@Override
-
-		public Rectangle getLineRect(int line) {
-
-			try{
-
-				return jTextArea1.modelToView(jTextArea1.getLineStartOffset(line));
-
-			}catch(BadLocationException e){
-
-				e.printStackTrace();
-
-				return new Rectangle();
-
-			}
-
-		}
-
-	}
     /**
      * @param args the command line arguments
      */
