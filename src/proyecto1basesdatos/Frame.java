@@ -9,13 +9,21 @@ package proyecto1basesdatos;
 /**
  *
  * @author Al
+ * FileChooser para guardar adaptado de http://stackoverflow.com/questions/9730635/saving-with-a-jfilechooser
  */
 import java.awt.Rectangle;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -38,6 +46,12 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Frame extends javax.swing.JFrame {
 
+    JFileChooser jfc;
+    private TextLineNumber lineNumber;
+    private boolean docUpdate = false;
+    private String default_filename = "default.sql";
+    private String default_directory = "/home/foo/workspace";
+    private int version = 0;
     /**
      * Creates new form Frame
      */
@@ -71,6 +85,8 @@ public class Frame extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
+		lineNumber = new TextLineNumber(jTextArea1);
+		jScrollPane1.setRowHeaderView( lineNumber );
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea2 = new javax.swing.JTextArea();
         jToolBar1 = new javax.swing.JToolBar();
@@ -214,7 +230,44 @@ public class Frame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
+        jfc = new JFileChooser();
+        jfc.setCurrentDirectory(new File(default_directory));
+        jfc.setSelectedFile(new File(default_filename));
+        jfc.addPropertyChangeListener(new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt)
+            {               
+                if (docUpdate == true)
+                {
+                    jfc.setCurrentDirectory(new File("/home/foo"));
+                    jfc.setSelectedFile(new File("default" + version + ".sql"));
+                }               
+            }
+        });
+        int returnVal = jfc.showSaveDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION)
+        {
+            File file = jfc.getSelectedFile();
+            // save the file.
+            BufferedWriter bw;
+            try {
+                bw = new BufferedWriter(new FileWriter(file));
+                bw.write(jTextArea1.getText());
+                bw.flush();
+            }               
+            catch (IOException e1)
+            {
+                e1.printStackTrace();
+            }
+            version++;
+
+        }
+        else
+        {
+            System.out.println("");
+        }
+        jTextArea1.setCaretPosition(jTextArea1.getDocument().getLength());
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
