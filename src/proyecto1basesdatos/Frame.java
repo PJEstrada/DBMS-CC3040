@@ -123,7 +123,7 @@ public class Frame extends javax.swing.JFrame {
 
         jToolBar1.setRollover(true);
 
-        jButton2.setText("Go");
+        jButton2.setText("");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -131,7 +131,7 @@ public class Frame extends javax.swing.JFrame {
         });
         jToolBar1.add(jButton2);
 
-        jButton4.setText("Save");
+        jButton4.setText("");
         jButton4.setFocusable(false);
         jButton4.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButton4.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -142,7 +142,7 @@ public class Frame extends javax.swing.JFrame {
         });
         jToolBar1.add(jButton4);
 
-        jButton3.setText("Open");
+        jButton3.setText("");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
@@ -150,7 +150,7 @@ public class Frame extends javax.swing.JFrame {
         });
         jToolBar1.add(jButton3);
 
-        jButton1.setText("Erase");
+        jButton1.setText("");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
