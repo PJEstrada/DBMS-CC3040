@@ -35,3 +35,9 @@ UPDATE films SET code = NULL WHERE tittle = 'myMovie'
 
 
 UPDATE A SET idSerial = NULL WHERE estudiante = 3
+
+//Inserts con NULLS
+
+INSERT INTO films VALUES (17,NULL,NULL,'Ficcion',80)
+// ERROR si inserto null en pk
+INSERT INTO films VALUES (NULL,NULL,NULL,'Ficcion',80)
