@@ -199,7 +199,8 @@ public class Frame extends javax.swing.JFrame {
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new MyDispatcher());
         pack();
     }
 
@@ -335,7 +336,7 @@ public class Frame extends javax.swing.JFrame {
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
             if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode()== KeyEvent.VK_F5) {
-                
+                System.out.println("ohasdf");
                 String[] wordsNot = {"CREATE","DATABASE", "DATABASES", "ALTER", "DROP", "SHOW", "USE", "TABLE", "INT", "FLOAT",
                               "DATE", "CHAR", "CONSTRAINT", "PRIMARY", "KEY", "FOREIGN", "CHECK", "REFERENCES", "TABLES",
                                 "COLUMN", "FROM", "ADD", "AND", "OR", "NOT", "INSERT", "INTO", "WHERE", "UPDATE", "SET",
