@@ -18,6 +18,7 @@ public class Term implements Serializable {
     public static final int FLOAT_TYPE=1;
     public static final int DATE_TYPE=3;
     public static final int CHAR_TYPE=2;
+    public static final int NULL_TYPE= -1;
     
     
     private Object value;
@@ -57,7 +58,15 @@ public class Term implements Serializable {
         type = c.tipo;
         isColumn=true;
     }    
+    //Para valores nulos
+    public Term (){
+       
+        type = Term.NULL_TYPE;
+        isColumn = false;
+        value = null;
+        
     
+    }
     /*
     Metodo getValue: verifica si el term es una columna o un valor. Si es un valor retorno el valor
     Si es una columna. revisa el iterador de tabla y obtiene el valor actual correspondiente a la columna de la tupla

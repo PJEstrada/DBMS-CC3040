@@ -12,10 +12,16 @@ public class AndExpression extends Expression implements Serializable {
         super(l,r);
     
     }
-    public boolean isTrue() throws Exception{
-        boolean left= this.left.isTrue();
-        boolean right = this.right.isTrue();
-        return left&&right;
+    public Boolean isTrue() throws Exception{
+        Boolean left= this.left.isTrue();
+        Boolean right = this.right.isTrue();
+        if(left==null || right == null){
+            return null;
+        }
+        else{
+            return left&&right;
+        }
+        
     }
     
 }

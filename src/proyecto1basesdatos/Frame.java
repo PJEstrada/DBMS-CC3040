@@ -209,7 +209,7 @@ public class Frame extends javax.swing.JFrame {
         String[] wordsNot = {"CREATE","DATABASE", "DATABASES", "ALTER", "DROP", "SHOW", "USE", "TABLE", "INT", "FLOAT",
                               "DATE", "CHAR", "CONSTRAINT", "PRIMARY", "KEY", "FOREIGN", "CHECK", "REFERENCES", "TABLES",
                                 "COLUMN", "FROM", "ADD", "AND", "OR", "NOT", "INSERT", "INTO", "WHERE", "UPDATE", "SET",
-                                "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO"};
+                                "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO", "NULL"};
         
         ArrayList<String> wordsR = new ArrayList( Arrays.asList(wordsNot));
         

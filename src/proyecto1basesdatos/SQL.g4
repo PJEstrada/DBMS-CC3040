@@ -38,6 +38,7 @@ SELECT: 'SELECT';
 ORDER:'ORDER';
 BY: 'BY';
 ASC: 'ASC';
+NULL: 'NULL';
 DESC: 'DESC';
 VALUES: 'VALUES';
 fragment LETTER: ('a'..'z'|'A'..'Z') ;
@@ -116,7 +117,7 @@ expression: andexpr | expression OR andexpr;
 	factor: primary | NOT primary;
 	primary: compareExpr | '(' expression ')';
 	compareExpr : term  rel_op term;
-	term: column | NUM | FLOAT_VAL | DATE_VAL | CHAR_VAL;
+	term: column | NUM | FLOAT_VAL | DATE_VAL | CHAR_VAL | NULL;
 
 column: ID| table'.'ID;
 table: ID;
@@ -131,7 +132,7 @@ multiInsert: (insertStmt)(';' insertStmt)* ;
 insertStmt: INSERT INTO table (columnList)? VALUES valueList ;
 	columnList:  '('  colName (','colName)* ')';
 	valueList: '(' val(',' val)* ')' ;
-	val: NUM | FLOAT_VAL | DATE_VAL | CHAR_VAL ;
+	val: NUM | FLOAT_VAL | DATE_VAL | CHAR_VAL | NULL;
 
 updateStmt: UPDATE table SET columnsUpdate '=' val (',' columnsUpdate '=' val)* (WHERE expression)? ;
 	columnsUpdate:ID ;

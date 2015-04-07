@@ -293,6 +293,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                 //Intentamos crear la base de datos, si ya existe capturamos la excepcion y mostramos error
                 try{
                     DB database = new DB(name);
+                    Frame.jTextArea2.append("\n Base de datos "+name+" creada exitosamente." );
                     return database;
                 }
                 catch(Exception e){
@@ -300,6 +301,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                     String s = e.getMessage();
                     Frame.jTextArea2.setText(s);
                 }
+                
                 return name;
 	}
 	@Override
@@ -316,14 +318,17 @@ public class Loader extends SQLBaseVisitor<Object>{
                 return "ERROR";
             
             }
-            else{
+            else{         
                 //Buscamos si la tabla ya existe en la metaData     
                 DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Revisando existencia de la tabla...");
+                }
                 for(TablaMetaData t:d.tablas){
                     if(t.nombre.equalsIgnoreCase(name)){
                        Frame.jTextArea2.setText("ERROR: Ya existe la tabla: "+name);
                        return "ERROR";                       
-                    
+              
                     }
                 }
                 //Guardamos las columnas
@@ -348,6 +353,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                 ArrayList<Constraint> cons = new ArrayList<Constraint>();
                 availableCons = cons;
                 if(test!=0){
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Agregando Restricciones...");
+                }
                    for(ParseTree n: ctx.colConstraint()){
                        Object c = visit(n);
                        if(!(c instanceof Constraint)){
@@ -355,18 +363,32 @@ public class Loader extends SQLBaseVisitor<Object>{
                        }
                        else{
                            Constraint con =(Constraint)c;
+                           //Revisamos que las no existan dos primary keys en la creacion
+                           
+                           
                            cons.add(con);
                        }
                    } 
                     //Creamos la tabla y la serializamos 
                     t1 = new Tabla(name,cols,cons);
-                    Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("Tabla '"+name+ "' Creada existosamente.");
+                    }
+                    else{
+                        Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
+                    }
+                    
                     return t1;                    
                 }
                 else{
                     //Creamos la tabla y la serializamos 
                     t1 = new Tabla(name,cols);
-                    Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("Tabla '"+name+ "' Creada existosamente.");
+                    }
+                    else{
+                        Frame.jTextArea2.setText("Tabla '"+name+ "' Creada existosamente.");
+                    } 
                     return t1;
                 }  
             }
@@ -659,6 +681,9 @@ public class Loader extends SQLBaseVisitor<Object>{
 	@Override
 	public Object visitRenameAlter(SQLParser.RenameAlterContext ctx) {
             //Verificamos si hay una DB en uso
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Buscando la base de datos en uso");
+            }
             if(DBMS.currentDB==null){
                 Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
                 return "ERROR";
@@ -666,25 +691,40 @@ public class Loader extends SQLBaseVisitor<Object>{
             }            
             String oldName = ctx.alterName().getText();
             String newName= ctx.newName().getText();
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Buscando la tabla");
+            }
             Tabla t = Tabla.loadTable(oldName);
             if(t==null){
                 Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+oldName);
                 return "ERROR";           
             
             }
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Alterando la metadata...");
+            }            
             DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
             TablaMetaData tm=d.findTable(oldName);
             tm.nombre=newName;
             t.renameTo(newName);
             DBMS.metaData.writeMetadata();
             DBMS.guardar();
-            Frame.jTextArea2.setText("Tabla: "+oldName+" renombrada a : '"+newName);
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Tabla: "+oldName+" renombrada a : '"+newName);
+            }
+            else{
+                Frame.jTextArea2.setText("Tabla: "+oldName+" renombrada a : '"+newName);
+            }
+            
             return t;
             
             
 	}
 	@Override
 	public Object visitAccionAlter(SQLParser.AccionAlterContext ctx) {
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Buscando la base de datos en uso");
+            }            
             if(DBMS.currentDB==null){
                 Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
                 return "ERROR";
@@ -706,6 +746,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
             }
             //Guardamos la tabla con los nuevos cambios
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Alterando la metadata...");
+            }              
             tableCreate.guardarTabla();
             DBMS.metaData.writeMetadata();
             DBMS.guardar();
@@ -722,18 +765,30 @@ public class Loader extends SQLBaseVisitor<Object>{
             if(ctx.ADD()!=null && ctx.COLUMN()!=null){
                 String colName = ctx.columnName().getText();
                 Object tipo = visit(ctx.tipo());
+                
                 if(tipo instanceof String){
                     Frame.jTextArea2.setText("ERROR: tipo invalido al agregar columna");
                     return "ERROR";
                 }
                 int tipo1 = (Integer) tipo;
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Verificando existencia de nueva columna");
+                }  
                 Columna yaExiste = findCol(colName,this.tableCreate.columnas);
                 if(yaExiste!=null){
-                       Frame.jTextArea2.setText("ERROR: La columna: <<"+colName+">> Fue especificada mas de una vez");
+                       if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: La columna: <<"+colName+">> Fue especificada mas de una vez");
+                       }
+                       else{
+                            Frame.jTextArea2.setText("ERROR: La columna: <<"+colName+">> Fue especificada mas de una vez");
+                       }
                        return "ERROR";                         
                 }
                 // Creando la columna
                 Columna c;
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Creando la columna...");
+                }                  
                 if(tipo1==Columna.CHAR_TYPE){
                     int size = Integer.parseInt(ctx.tipo().NUM().getText());
                      c = new Columna(colName,tipo1,size,tableCreate.name);
@@ -748,7 +803,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                 ArrayList<Constraint> nuevasConstraints = new ArrayList<Constraint>();
                 if(ctx.singleColConstraint()!=null){
                     // Asignando las constraints creadas a las disponibles para verificar cosntraints duplicadas
-
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("Agregando restricciones de columna...");
+                    }   
                     this.colsCreate.add(c); //Agregamos la nueva columna
                     this.availableCols= this.colsCreate; // Agregamos a columnas disponibles para el caso en que haya un CHECK ( expression) con un term como columna
                     for(ParseTree n: ctx.singleColConstraint()){
@@ -764,7 +821,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                     // Verificamos si alguna constraint es primary key y si hay alguna tupla, no permitimos agregar la columna porque habran valores nulos en una pk
                     for(Constraint cs: nuevasConstraints){
                         if(cs.tipo==Constraint.PK && this.tableCreate.tuplas.size()>0){
-                            Frame.jTextArea2.setText("ERROR: no se puede insertar primary key : <<"+cs.nombre+">> porque se crearan valores nulos en la tabla ");
+                            if(Frame.useVerbose){
+                                Frame.jTextArea2.append("ERROR: no se puede insertar primary key : <<"+cs.nombre+">> porque se crearan valores nulos en la tabla ");
+                            }
+                            else{
+                                Frame.jTextArea2.setText("ERROR: no se puede insertar primary key : <<"+cs.nombre+">> porque se crearan valores nulos en la tabla ");
+                            }
                         }
                     
                     }
@@ -798,7 +860,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                     return "ERROR";
                     
                 }
-                
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Agregando restricciones...");
+                }                   
                 Constraint c1 = (Constraint)c;
                 ConstraintMetaData cmt = new ConstraintMetaData(c1.nombre,c1.getStringType(c1.tipo),c1.toString());
                 tableCreate.constraints.add(c1); 
@@ -809,17 +873,34 @@ public class Loader extends SQLBaseVisitor<Object>{
             else if(ctx.DROP()!= null && ctx.COLUMN()!= null){
                 String colName = ctx.columnName().getText();
                 //Verificamos que la columna exista 
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Buscando restriccion para eliminar...");
+                }                   
                 Columna yaExiste = findCol(colName,this.tableCreate.columnas);
                 if(yaExiste==null){
-                    Frame.jTextArea2.setText("ERROR: no se encuentra la columna <<"+colName+">> en la tabla: "+tableCreate.columnas);
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("ERROR: no se encuentra la columna <<"+colName+">> en la tabla: "+tableCreate.columnas);
+                    }
+                    else{
+                         Frame.jTextArea2.setText("ERROR: no se encuentra la columna <<"+colName+">> en la tabla: "+tableCreate.columnas);
+                    }
+
                     return "ERROR";
                 }
                 
                 //Revisar que no existan referencias en llaves foraneas de otras tablas
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Verificando referencias en otras tablas");
+                }                   
                 ArrayList<Constraint> allForeignConstraints = getAllForeignConstraints();
                 Constraint hayReferencia = hayReferencia(colName,tableCreate.name,allForeignConstraints);
                 if(hayReferencia !=null){
-                    Frame.jTextArea2.setText("ERROR: No se puede eliminar <<"+colName+">> porque existe la referencia <<"+hayReferencia.nombre+">> en la tabla: "+hayReferencia.tabla);
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("ERROR: No se puede eliminar <<"+colName+">> porque existe la referencia <<"+hayReferencia.nombre+">> en la tabla: "+hayReferencia.tabla);
+                    }
+                    else{
+                        Frame.jTextArea2.setText("ERROR: No se puede eliminar <<"+colName+">> porque existe la referencia <<"+hayReferencia.nombre+">> en la tabla: "+hayReferencia.tabla);
+                    }
                     return "ERROR";
                 } 
                 //Elimnamos la columna correspondiente a la fila en cada tupla y la columna como atributo de la tabla y del metadata
@@ -834,6 +915,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                      Frame.jTextArea2.setText("ERROR: no se encuentra la constraint <<"+consName+">> en la tabla: "+tableCreate.columnas);
                      return "ERROR";               
                 }
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Verificando referencias en otras tablas");
+                }                   
                 //Si la constraint es primary key, revisamo referencias a otras tablas de las columnas de la pk
                 if(yaExiste.tipo == Constraint.PK){
                     ArrayList<Columna> columnas = yaExiste.colsPkeys;
@@ -861,12 +945,24 @@ public class Loader extends SQLBaseVisitor<Object>{
         @Override 
         public Object visitSingleColConstraint(@NotNull SQLParser.SingleColConstraintContext ctx) {
             //Si es primary key 
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Agregando restriccion de columna...");
+            }               
             if(ctx.PRIMARY()!=null){
                 String name = ctx.pkNombre().getText();
                 //Revisamos que no exista una primary key en las constraints declaradas antes
                 boolean hay_pk = findPk(availableCons);
+                if(Frame.useVerbose){
+                 Frame.jTextArea2.append("Verificando existencia de otros primary keys...");
+                }
+               
                 if(hay_pk){
-                        Frame.jTextArea2.setText("ERROR: No es posible declarar dos primary keys. En la tabla: "+tableCreate.name);
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: No es posible declarar dos primary keys. En la tabla: "+tableCreate.name);
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: No es posible declarar dos primary keys. En la tabla: "+tableCreate.name);
+                        }
                         return "ERROR";                    
                 }
                 //No hacemos ninguna revision si la columna existe o no pues esta siendo agregada en este momento.
@@ -874,11 +970,22 @@ public class Loader extends SQLBaseVisitor<Object>{
                 //Creamos constraint
                 ArrayList<Columna> pkCols = new ArrayList<Columna>();
                 pkCols.add(this.addedCol);
+                if(Frame.useVerbose){
+                 Frame.jTextArea2.append("Creando constraint...");
+                }
                 Constraint c = new Constraint(name,Constraint.PK,pkCols,tableCreate.name);
                 //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                if(Frame.useVerbose){
+                 Frame.jTextArea2.append("Verificando que el nombre de la constraint no exista...");
+                }
                 boolean existeConstraint = findConstraint(c,this.availableCons);
                 if(existeConstraint){
-                        Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        if(Frame.useVerbose){
+                         Frame.jTextArea2.append("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        }
+                        else{
+                         Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        }
                         return "ERROR";               
                 }
                 return c;                
@@ -890,10 +997,19 @@ public class Loader extends SQLBaseVisitor<Object>{
                 localCols.add(addedCol);
                 //Obteniendo la tabla que referencia
                 String refTable = ctx.idTabla().getText();
+                if(Frame.useVerbose){
+                 Frame.jTextArea2.append("Buscando tabla de referencia...");
+                }
+
                 DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
                 TablaMetaData t = bd.findTable(refTable);
                 if(t==null){
-                        Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        }
                         return "ERROR";                   
                 }
                 else{
@@ -909,35 +1025,68 @@ public class Loader extends SQLBaseVisitor<Object>{
                         }
                     }
                     if(cols==null){
-                        Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        }
+                        else{
+                         Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
+                        }
                         return "ERROR";                   
                     }
                     
                     String text = ctx.refids().getText();
                     //Buscamos las columnas de la tabla foranea
                     if(cols==null){
-                        Frame.jTextArea2.setText("ERROR: No se encuentra archivo de columnas para la tabla: "+refTable);
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: No se encuentra archivo de columnas para la tabla: "+refTable);
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: No se encuentra archivo de columnas para la tabla: "+refTable);
+                        }
                         return "ERROR";                            
                     }
                     Columna encontrada = findCol(text,cols);
                     if(encontrada==null){
-                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla: "+refTable);
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: No se encuentra la columna: "+text+" En la tabla: "+refTable);
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: No se encuentra la columna: "+text+" En la tabla: "+refTable);
+                        }
+                        
                         return "ERROR";
                     }
                     else{
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("Verificando que las columnas pertenezcan a PK...");
+                        }                        
                         //Si encontramos la columna, verificamos que la columna pertenezca al primary key de la tabla externa para garantizar que la llave sea unica
                         Columna encontrada2 = findCol(encontrada.nombre,columnasPrimary);
                         if(encontrada2==null){
-                            Frame.jTextArea2.setText("ERROR: No se puede crear la llave foranea. La columna de referecia: "+encontrada.nombre+" No es unica ");
+                            if(Frame.useVerbose){
+                                 Frame.jTextArea2.append("ERROR: No se puede crear la llave foranea. La columna de referecia: "+encontrada.nombre+" No es unica ");
+                            }
+                            else{
+                                 Frame.jTextArea2.setText("ERROR: No se puede crear la llave foranea. La columna de referecia: "+encontrada.nombre+" No es unica ");
+                            }
                             return "ERROR";
                         }                           
                         //Agregamos la columna 
                         fkCols.add(encontrada);
 
                     }
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("Verificando columnas de la llave foranea...");
+                    }
                     //Una vez obtenidos los dos arreglos de columnas verificamos que tengan el mismo tamaño
                     if(fkCols.size()!=localCols.size()){
-                        Frame.jTextArea2.setText("ERROR: El numero de columnas locales y remotas en la foregin key debe ser el mismo");
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: El numero de columnas locales y remotas en la foregin key debe ser el mismo");
+                        }
+                        
+                        else{
+                             Frame.jTextArea2.setText("ERROR: El numero de columnas locales y remotas en la foregin key debe ser el mismo");
+                        }
                         return "ERROR";
                     }
                     //Si los arreglos son iguales verificamos que tengan los mismos tipo
@@ -945,17 +1094,31 @@ public class Loader extends SQLBaseVisitor<Object>{
                         Columna local = localCols.get(i);
                         Columna foreign = fkCols.get(i);
                         if(local.tipo!=foreign.tipo){
-                            Frame.jTextArea2.setText("ERROR: las columnas: '"+local.nombre+", "+foreign.nombre+"' Deben tener el mismo tipo");
+                            if(Frame.useVerbose){
+                                Frame.jTextArea2.append("ERROR: las columnas: '"+local.nombre+", "+foreign.nombre+"' Deben tener el mismo tipo");
+                            }
+                            else{
+                                Frame.jTextArea2.setText("ERROR: las columnas: '"+local.nombre+", "+foreign.nombre+"' Deben tener el mismo tipo");
+                            }
+                            
                             return "ERROR";                       
                         
                         }
                     }
+                    if(Frame.useVerbose){
+                            Frame.jTextArea2.append("Creando constraint...");
+                    }    
                     //Si todas las columnas tienen los mismo tipos, procedemos a crear la constraint
                     Constraint c = new Constraint(name,Constraint.FK,localCols,fkCols,refTable,this.tableCreate.name);
                     //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
                     boolean existeConstraint = findConstraint(c,this.availableCons);
                     if(existeConstraint){
-                            Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                            if(Frame.useVerbose){
+                                Frame.jTextArea2.append("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                            }
+                            else{
+                                Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                            }
                             return "ERROR";               
                     }                   
                     return c;
@@ -971,12 +1134,24 @@ public class Loader extends SQLBaseVisitor<Object>{
                     return "ERROR";
                 
                 }
+                if(Frame.useVerbose){
+                        Frame.jTextArea2.append("Creando constraint...");
+                }                 
                 Expression e1 = (Expression)e;
                 Constraint c = new Constraint(name,Constraint.CHECK,e1,tableCreate.name,expr);
                 //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Buscando constraint repetida....");
+                }
                 boolean existeConstraint = findConstraint(c,this.availableCons);
+                
                 if(existeConstraint){
-                        Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        if(Frame.useVerbose){
+                            Frame.jTextArea2.append("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        }
+                        else{
+                            Frame.jTextArea2.setText("ERROR: La constraint  "+c.nombre+" Ya fue declarada "+tableCreate.name);
+                        }
                         return "ERROR";               
                 }                  
                 return c;            
@@ -1010,9 +1185,18 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
 	}
        @Override public Object visitMultiInsert(@NotNull SQLParser.MultiInsertContext ctx) {
+           
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }             
            int size = ctx.insertStmt().size();
            int i =0;
            for(ParseTree n: ctx.insertStmt()){
+               if(Frame.useVerbose){
+                   Frame.jTextArea2.append("Insertando registro #"+i);
+               }
                Object x = visit(n);
                if(x instanceof String){
                     Frame.jTextArea2.append("\n Error en insert no."+i);      
@@ -1025,8 +1209,14 @@ public class Loader extends SQLBaseVisitor<Object>{
             tm.cantRegistros= tm.cantRegistros+i;
             this.tableCreate.guardarTabla();
             DBMS.metaData.writeMetadata();
-            DBMS.guardar();                
-           Frame.jTextArea2.setText("Insert ("+size+") registros con exito.");
+            DBMS.guardar();    
+           if(Frame.useVerbose){
+            Frame.jTextArea2.append("Insert ("+size+") registros con exito.");
+           }
+           else{
+            Frame.jTextArea2.setText("Insert ("+size+") registros con exito.");
+           }
+           
            return true;
        
        }
@@ -1041,7 +1231,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
                 Tabla t = this.tableCreate;
                 if(t==null){
-                    Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("ERROR: No se encuentra la tabla: "+tableName);
+                    }
+                    else{
+                     Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                    }
                     return "ERROR";
                 }  
                  //Verificamos si hay columnas especificadas
@@ -1052,7 +1247,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                         String colName = n.getText();
                         Columna existe = this.findCol(colName, t.columnas);
                         if(existe == null){
-                            Frame.jTextArea2.setText("ERROR: No se encuentra la Columna: <<"+colName+">> en la tabla: "+tableName);
+                            if(Frame.useVerbose){
+                                Frame.jTextArea2.append("ERROR: No se encuentra la Columna: <<"+colName+">> en la tabla: "+tableName);
+                            }
+                            else{
+                                Frame.jTextArea2.setText("ERROR: No se encuentra la Columna: <<"+colName+">> en la tabla: "+tableName);
+                            }
+                            
                             return "ERROR";                           
                         }
                         columnasEspecificadas.add(existe);
@@ -1071,7 +1272,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                     // Verificamos que el numero de columnas y el numero de valores sean iguales 
                     if(ctx.valueList().val().size()!=columnasEspecificadas.size()){
-                            Frame.jTextArea2.setText("ERROR: El numero de columnas y de valores especificados debe ser el mismo");
+                            if(Frame.useVerbose){
+                                Frame.jTextArea2.append("ERROR: El numero de columnas y de valores especificados debe ser el mismo");
+                            }
+                            else{
+                                Frame.jTextArea2.setText("ERROR: El numero de columnas y de valores especificados debe ser el mismo");
+                            }
+                            
                             return "ERROR";                           
                     }
                     //Asignamos los valores ingresado a los indices correctos en el arraylist valores
@@ -1096,7 +1303,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                             valor = Float.parseFloat(n.getText());
                         }
                         else if(valueType == Columna.DATE_TYPE){
-                            valor = LocalDate.parse(n.getText());
+                            String v = n.getText();
+                            v= v.substring(1);
+                            v = v.substring(0,v.length()-1);                                
+                            valor = LocalDate.parse(v);
                         }
                         
                         valores.set(indicesColumnas.get(i),valor);
@@ -1139,7 +1349,14 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
                     //Verificamos que el numero de valores no sea mayor al numero de columnas
                     if(valores.size()>t.columnas.size()){
-                        Frame.jTextArea2.setText("ERROR: El numero de valores ingresados es mayor al numero de columnas en la tabla: "+tableName);
+                            if(Frame.useVerbose){
+                                 Frame.jTextArea2.append("ERROR: El numero de valores ingresados es mayor al numero de columnas en la tabla: "+tableName);
+                            }
+                            else{
+                                 Frame.jTextArea2.setText("ERROR: El numero de valores ingresados es mayor al numero de columnas en la tabla: "+tableName);
+                            }
+                            
+                       
                         return "ERROR";                    
                     }
                     Tupla nuevaTupla = new Tupla(new ArrayList<Object>(),t);
@@ -1160,7 +1377,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     String v = valores.get(i).toString();
                                     //Verificamos el tamanio del string
                                     if(v.length()>t.columnas.get(i).size){
-                                        Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        if(Frame.useVerbose){
+                                              Frame.jTextArea2.append("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        }
+                                        else{
+                                             Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        }                                        
+                                       
                                         return "ERRROR";                                          
                                     }                                    
                                     
@@ -1171,7 +1394,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     valores.set(i, v);
                                 }
                                 else{
-                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    if(Frame.useVerbose){
+                                          Frame.jTextArea2.append("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    }
+                                    else{
+                                         Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    }                                          
+                                    
                                     return "ERRROR";
                                 }
                             }
@@ -1194,7 +1423,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     valores.set(i, v);
                                 }
                                 else{
-                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    if(Frame.useVerbose){
+                                        Frame.jTextArea2.append("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    }
+                                    else{
+                                        Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    }
+                                    
                                     return "ERRROR";                                
                                 }
                             
@@ -1204,7 +1439,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     String v = valores.get(i).toString();
                                     //Verificamos el tamanio del string
                                     if(v.length()>t.columnas.get(i).size){
-                                        Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                    if(Frame.useVerbose){
+                                             Frame.jTextArea2.append("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        }
+                                        else{
+                                             Frame.jTextArea2.setText("ERROR: El tamaño del CHAR es mayor al definido en la columna <<"+t.columnas.get(i).nombre+">>. Se encontro: "+v.length()+", "+t.columnas.get(i).size);
+                                        }                                        
+                                       
                                         return "ERRROR";                                          
                                     }
                                     valores.set(i, v);
@@ -1213,7 +1454,14 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     
                                 }
                                 else{
-                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    if(Frame.useVerbose){
+                                            Frame.jTextArea2.append("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                        }
+                                    else{
+                                         Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    }                                        
+
+                                    
                                     return "ERRROR";                                      
                                 }
                             }                            
@@ -1227,7 +1475,14 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     }
                                     
                                     catch(Exception e){
-                                        Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                        
+                                    if(Frame.useVerbose){
+                                            Frame.jTextArea2.append("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                        }
+                                    else{
+                                         Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    }                                           
+                                        
                                         return "ERRROR";                                      
                                     }
                                                                    
@@ -1240,7 +1495,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                                     }
                                     
                                     catch(Exception e){
-                                        Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                        
+                                    if(Frame.useVerbose){
+                                            Frame.jTextArea2.append("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                        }
+                                    else{
+                                         Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    }   
                                         return "ERRROR";                                      
                                     }                              
                                  }
@@ -1250,12 +1511,22 @@ public class Loader extends SQLBaseVisitor<Object>{
                                         valores.set(i, d);
                                     }
                                     catch(Exception e){
-                                        Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    if(Frame.useVerbose){
+                                            Frame.jTextArea2.append("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                        }
+                                    else{
+                                         Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    }   
                                         return "ERRROR";                                       
                                     }                             
                                  }
                                  else{
-                                    Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+tipoValor+", "+tipoColumna);
+                                    if(Frame.useVerbose){
+                                            Frame.jTextArea2.append("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                        }
+                                    else{
+                                         Frame.jTextArea2.setText("ERROR: Tipos invalidos en insercion de columna: <<"+t.columnas.get(i).nombre+">>. Se encontro: "+t.columnas.get(i).getStringType(tipoValor)+", "+t.columnas.get(i).getStringType(tipoColumna));
+                                    }   
                                     return "ERRROR";                                   
                                  }
                             }
@@ -1280,6 +1551,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                     tempTabla.name = t.name;
                     tempTabla.columnas.addAll(t.columnas);
                     Loader.iterador = new IteradorTabla(tempTabla,0);
+                    if(Frame.useVerbose){
+                        Frame.jTextArea2.append("Verificando restricciones en la insercion...");
+                    }
                     for(Constraint cons: t.constraints){
                         if(cons.tipo==Constraint.PK){
                              ArrayList<Integer> indices = new ArrayList<Integer>();
@@ -1291,16 +1565,28 @@ public class Loader extends SQLBaseVisitor<Object>{
                                 Object v = nuevaTupla.valores.get(iValor);
                                 pkeyValues.add(v);
                                 if(v==null){
-                                     Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+">> no puede tener valor nulo por la constraint <<"+cons.nombre+">>");
+                                     if(Frame.useVerbose){
+                                        Frame.jTextArea2.append("ERROR: la columna <<"+c.nombre+">> no puede tener valor nulo por la constraint <<"+cons.nombre+">>");
+                                     }
+                                     else{
+                                        Frame.jTextArea2.setText("ERROR: la columna <<"+c.nombre+">> no puede tener valor nulo por la constraint <<"+cons.nombre+">>");
+                                     }
                                      return "ERRROR";                                     
                                 }
                             
                             }
-                                
+                            
+                            
                             //Revisamos si ya existe el valor en las tuplas de la tabla
                             boolean yaExiste = t.contieneValor(pkeyValues, indices);
                             if(yaExiste){
-                                 Frame.jTextArea2.setText("ERROR: la restriccion <<"+cons.nombre+">> esta siendo violada con la insercion. Debe existir valor unico por la PK: <<"+cons.nombre+">>");
+                                if(Frame.useVerbose){
+                                    Frame.jTextArea2.append("ERROR: la restriccion <<"+cons.nombre+">> esta siendo violada con la insercion. Debe existir valor unico por la PK: <<"+cons.nombre+">>");
+                               }
+                               else{
+                                  Frame.jTextArea2.setText("ERROR: la restriccion <<"+cons.nombre+">> esta siendo violada con la insercion. Debe existir valor unico por la PK: <<"+cons.nombre+">>");
+                               }                               
+                                 
                                  return "ERRROR";                                         
                             }                            
                         
@@ -1338,7 +1624,14 @@ public class Loader extends SQLBaseVisitor<Object>{
                                      else{s+="null, ";}
                                  
                                  }
-                                 Frame.jTextArea2.setText("ERROR: La llave <<"+s+">> no existe en la tabla de referencia: "+foreignTable.name);
+                                    if(Frame.useVerbose){
+                                        Frame.jTextArea2.append("ERROR: La llave <<"+s+">> no existe en la tabla de referencia: "+foreignTable.name);
+                                   }
+                                   else{
+                                       Frame.jTextArea2.setText("ERROR: La llave <<"+s+">> no existe en la tabla de referencia: "+foreignTable.name);
+                                   }                               
+                                                                  
+                                
                                  return "ERRROR";                                       
                             }                           
                         }
@@ -1355,7 +1648,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                             try {
                                 //No hacemos ningun for porque solo queremos evaluar la tupla que vamos a insertar
                                 if(!e.isTrue()){
-                                    Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
+                                  if(Frame.useVerbose){
+                                        Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
+                                   }
+                                   else{
+                                       Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
+                                   }                                     
+                                    
                                     return "ERRROR";
                                     
                                 }
@@ -1392,12 +1691,20 @@ public class Loader extends SQLBaseVisitor<Object>{
                 else if (ctx.FLOAT_VAL()!=null){
                     return Columna.FLOAT_TYPE;
                 }
+                else if(ctx.NULL()!=null){
+                    return -1;
+                }
                 else{return "ERROR";}
 	}
 
 
 	@Override
 	public Object visitUpdateStmt(SQLParser.UpdateStmtContext ctx) {
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }              
             String tableName = ctx.table().getText();
             Tabla t = Tabla.loadTable(tableName);
 
@@ -1405,12 +1712,16 @@ public class Loader extends SQLBaseVisitor<Object>{
                 Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
                 return "ERROR";
             } 
+            
             this.availableCols = new ArrayList<Columna>();
             this.availableCols.addAll(t.columnas);            
             ArrayList<Columna> columnasEspecificadas= new ArrayList<Columna>();
             ArrayList<Object> valores = new ArrayList<Object>();
             //Obtenemos las columnas que se especificaron
             int i =0;
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Obteniendo columnas especificadas...");
+            }
             for(ParseTree n: ctx.columnsUpdate()){
                 String colName = n.getText();
                 Columna existe = this.findCol(colName, t.columnas);
@@ -1422,10 +1733,17 @@ public class Loader extends SQLBaseVisitor<Object>{
                  //Verificamos los tipos del valor y la columna actual
 
                 Object tipoValor1 = visit(ctx.val(i));
-                valores.add(ctx.val(i).getText());
                 if(tipoValor1 instanceof String){
                     return "ERROR";
                 }
+                Integer tipoValor2 = (Integer) tipoValor1;
+                if(tipoValor2 == -1){
+                    valores.add(null);
+                }
+                else{
+                    valores.add(ctx.val(i).getText());
+                }
+
                 int tipoValor = (Integer) tipoValor1;
                 int tipoColumna= existe.tipo;
                 Object valor = null;
@@ -1446,6 +1764,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }                
                 valores.set(i,valor);
                 // Si no son iguales... intentamos hacer conversion de tipos
+                if(Frame.useVerbose){
+                Frame.jTextArea2.append("Verificando tipos...");
+                }
                 if(tipoValor != tipoColumna){                           
                     if(tipoValor == Columna.INT_TYPE){
                         if(tipoColumna== Columna.CHAR_TYPE){
@@ -1580,22 +1901,25 @@ public class Loader extends SQLBaseVisitor<Object>{
             Loader.iterador = new IteradorTabla(t,0);  
             //Recorremos cada una de las tuplas en el iterador y verificamos la condicion. 
             int numModificadas =0;
+            ArrayList<Tupla> tuplasWhere = new ArrayList<Tupla>();
             for(int j =0;j<Loader.iterador.tabla.tuplas.size();j++){
                 Tupla tuplaActual = Loader.iterador.tabla.tuplas.get(j);
                 try {
                     if(where.isTrue()){
                        numModificadas++;
                        t.actualizarTupla(valores, indicesColumnas, j);
-                     
+                       tuplasWhere.add(tuplaActual);
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 Loader.iterador.siguiente(); //Movemos el iterador a la siguiente tupla
             }
-            
+                if(Frame.useVerbose){
+                Frame.jTextArea2.append("Verificando restricciones en la actualizacion...");
+            }
             //Verificamos contraints en cada una de las tuplas de la tabla
-            for(Tupla currentTupla: t.tuplas){
+            for(Tupla currentTupla: tuplasWhere){
                 
                 for(Constraint cons: t.constraints){
                     if(cons.tipo== Constraint.PK){
@@ -1607,6 +1931,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                             checkValues.add(val);
                             indexChecks.add(indice);
                         }
+                        //Revisamo si hay valores nulos
+                        boolean contieneNulls = t.hasNullValues(indexChecks,currentTupla);
+                        if(contieneNulls){
+                            Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque crea valores nulos para llave primaria");
+                            return "ERROR";
+                        }                        
                         boolean duplicada = t.estaDuplicado(checkValues, indexChecks);
                         if(duplicada){
                             Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque crea valores duplicados de una llave primaria");
@@ -1618,8 +1948,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                         Tabla foreign = Tabla.loadTable(cons.foreignTable);
                         //Obtenemos los valores de la tupla actual 
                         ArrayList<Object> checkValues = new ArrayList<Object>();
+                        ArrayList<Integer> localIndexes = new ArrayList<Integer>();
                         for(Columna local: cons.localFkeys){
                             int indice = t.getIndiceColumna(local.nombre);
+                            localIndexes.add(indice);
                             Object v = currentTupla.valores.get(indice);
                             checkValues.add(v);
                         }
@@ -1630,6 +1962,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                             indexValues.add(index);
                         
                         }
+                        
+                        //Revisamos si hay valores nulos
+                        boolean contieneNulls = t.hasNullValues(localIndexes,currentTupla);
+                        if(contieneNulls){
+                            Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque crea valores nulos para llave foranea");
+                            return "ERROR";
+                        }                         
                         boolean contieneValores = foreign.contieneValor(checkValues, indexValues);
                         if(!contieneValores){
                             Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque no se encuentra el valor de la llave foranea");
@@ -1654,6 +1993,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 }
                        
+            }
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Verificando integridad referencial de la tabla...");
             }
             //Obtenemos referencias a la tabla 
             ArrayList<Constraint> referencias = obtenerReferenciasDe(t.name);
@@ -1691,12 +2033,17 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             //Guardamos la tablas
             t.guardarTabla();
-            Frame.jTextArea2.setText("Insert Finalizado. Se modificaron: "+numModificadas+" registros");
+            Frame.jTextArea2.append("Update Finalizado. Se modificaron: "+numModificadas+" registros");
             return true;
             
 	}
         @Override
         public Object visitDeleteStmt(SQLParser.DeleteStmtContext ctx){
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }              
             //Para cuando no tiene where
             String tablename = ctx.table().getText();
             Tabla t = Tabla.loadTable(tablename);
@@ -1826,6 +2173,11 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitDropTableStmt(SQLParser.DropTableStmtContext ctx) {
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }              
             /*Borrar implica: 
             1. Ver que base de datos estoy usando
             2. Buscar la tabla si existe
@@ -1962,7 +2314,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             boolean existsDb = false;
             for(int i = 0; i< nombresDB.size(); i++)
             {
-               if(dbname.equals(nombresDB.get(i)))
+               if(dbname.equalsIgnoreCase(nombresDB.get(i)))
                {
                    existsDb = true;
                    break;
@@ -2118,6 +2470,11 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitSelectStmt(SQLParser.SelectStmtContext ctx) {
+             if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }             
             //Primero revisamos las tablas especificadas en el from
             ArrayList<Tabla> tablasFrom = new ArrayList<Tabla>();
             for(ParseTree n: ctx.table()){
@@ -2191,12 +2548,13 @@ public class Loader extends SQLBaseVisitor<Object>{
             
             }
             //Agregamos al resultado final solo las columnas del select
-            ArrayList<Object> resultadoFinal = new ArrayList<Object>();
+            ArrayList<Tupla> resultadoFinal = new ArrayList<Tupla>();
             for(Tupla t : resultSelect){
                 Tupla tfinal = new Tupla(temp);
                 for(int i:indexSelect){
                     Object valor = t.valores.get(i);
-                    resultadoFinal.add(valor);
+                    tfinal.valores.add(valor);
+                    
                 
                 }
                 resultadoFinal.add(tfinal);
@@ -2221,25 +2579,32 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
             
             
-            }         
-            //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos
-            ComparatorColumn com = new ComparatorColumn(temp, orderBy);
-            com.order();
-            System.out.println("--------------------------------");
-            for(Tupla t: temp.tuplas){
-                System.out.println(t.toString());
+                     
+                //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos
+                ComparatorColumn com = new ComparatorColumn(temp, orderBy);
+                com.order();
+                System.out.println("--------------------------------");
+                for(Tupla t: temp.tuplas){
+                    System.out.println(t.toString());
+                }
             }
             //Agregamos el resultado al JTable (pendiente)
             ArrayList<String> columnsName = new ArrayList();
             ArrayList<ArrayList<String>> dataToFill = new ArrayList();
-            for(Columna c: temp.columnas){
+            for(Columna c: colsSelect){
                 columnsName.add(c.nombre);
             }
            
-            for(Tupla tN : temp.tuplas){
+            for(Tupla tN : resultadoFinal){
                 ArrayList<String> tempFill = new ArrayList();
                 for(Object ob : tN.valores){
-                    tempFill.add(((String)ob.toString()));
+                    if(ob == null){
+                        tempFill.add("");
+                    }
+                    else{
+                        tempFill.add(((String)ob.toString()));
+                    }
+                    
                 }
                 dataToFill.add(tempFill);
             }
@@ -2314,6 +2679,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                      Frame.jTextArea2.setText("Error: Tipo Invalido de Fecha: "+ctx.DATE_VAL().getText());
                     return "ERROR";                      
                 }
+            }
+            else if (ctx.NULL()!=null){
+                return new Term();
             }
             //Si es columna
             else{

@@ -1,0 +1,37 @@
+CREATE TABLE films
+(
+code INT,
+tittle CHAR(255),
+release_date DATE,
+kind CHAR(255),
+duracion INT,
+
+CONSTRAINT pkeyfilms PRIMARY KEY (code)
+
+)
+
+
+CREATE TABLE A
+(
+  idSerial INT,
+  estudiante INT,
+
+  CONSTRAINT pkeyA PRIMARY KEY (idSerial),
+  CONSTRAINT fkeyAsignacion FOREIGN KEY (idSerial) REFERENCES films (code)
+)
+
+INSERT INTO films VALUES (13,'myMovie','1999-03-03','Ficcion',80); 
+INSERT INTO films VALUES (14,'myMovie2','1999-03-03','Ficcion',75); 
+INSERT INTO films VALUES (15,'myMovie3','1999-03-03','Ficcion',60);
+INSERT INTO films(code, duracion,release_date,kind) VALUES (16,90,'1999-03-03','Drama')
+
+INSERT INTO A VALUES (13,1); 
+INSERT INTO A VALUES (14,2); 
+INSERT INTO A VALUES (15,3);
+INSERT INTO A VALUES (18,3);
+// Al hacer update a un valor null, deberia tirar error por la primary key
+
+UPDATE films SET code = NULL WHERE tittle = 'myMovie'
+
+
+UPDATE A SET idSerial = NULL WHERE estudiante = 3

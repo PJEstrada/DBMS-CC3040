@@ -33,6 +33,8 @@ public class DBMS {
     
     
     public DBMS(){
+
+      
         /* Test para tiempo serializacion / deserializacion*/
       /* int a =0;
         ArrayList<Tupla> ts = new ArrayList<Tupla>();
@@ -76,8 +78,8 @@ public class DBMS {
         /*for(int i =0; i<12000;i++){
             System.out.println("INSERT INTO asignacion VALUES ("+i+","+i+","+i+",'test"+i+"',1);");
         }*/
-        DBMS.currentDB="test";
-        Tabla t = Tabla.loadTable("asignacion");
+        //DBMS.currentDB="test";
+        //Tabla t = Tabla.loadTable("asignacion");
 
        
         String currentDir = System.getProperty("user.dir");

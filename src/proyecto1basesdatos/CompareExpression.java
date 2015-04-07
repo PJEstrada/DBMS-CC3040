@@ -21,14 +21,18 @@ public class CompareExpression extends Expression implements Serializable{
         left =l;
         right =r;
         this.op = op;
+
     }
     
     @Override
-    public boolean isTrue() throws Exception{
+    public Boolean isTrue() throws Exception{
         
         switch(op){
             case "=":
-                if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
+                if(left.getValue()==null || right.getValue() == null){
+                    return left.getValue() == right.getValue();
+                }
+                else if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
                     int ir = (int)right.getValue();
                     return il==ir;
@@ -90,6 +94,9 @@ public class CompareExpression extends Expression implements Serializable{
                 } 
                 
             case "<>":
+                if(left.getValue()==null || right.getValue() == null){
+                    return left.getValue() != right.getValue();
+                }                
                 if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
                     int ir = (int)right.getValue();
@@ -153,6 +160,10 @@ public class CompareExpression extends Expression implements Serializable{
                 } 
           
             case ">":
+                if(left.getValue()==null || right.getValue() == null){
+                    return null;
+                }                
+                
                 if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
                     int ir = (int)right.getValue();
@@ -218,6 +229,9 @@ public class CompareExpression extends Expression implements Serializable{
                 } 
                 break;
             case ">=":
+                if(left.getValue()==null || right.getValue() == null){
+                    return null;
+                }                    
                 if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
                     int ir = (int)right.getValue();
@@ -284,6 +298,10 @@ public class CompareExpression extends Expression implements Serializable{
                 
                 break;
             case "<":
+                if(left.getValue()==null || right.getValue() == null){
+                    return null;
+                }                    
+                
                 if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
                     int ir = (int)right.getValue();
@@ -351,7 +369,10 @@ public class CompareExpression extends Expression implements Serializable{
                 }                  
                 break;
                 
-            case "<=":     
+            case "<=":   
+                if(left.getValue()==null || right.getValue() == null){
+                    return null;
+                }                    
                 if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
                     int ir = (int)right.getValue();
