@@ -411,7 +411,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                 //Revisando que existan los nombre de las columnas
                 ArrayList<Columna> pkCols = new ArrayList<Columna>();
                 
-                
+                ArrayList<Integer> colIndices = new ArrayList<Integer>();
                 for(ParseTree n:ctx.localids()){
                     String text = n.getText();
                     Columna encontrada = findCol(text,colsCreate);
@@ -421,10 +421,24 @@ public class Loader extends SQLBaseVisitor<Object>{
                         return "ERROR";
                     }
                     else{
+                        int ind = tableCreate.getIndiceColumna(encontrada.nombre);
+                        colIndices.add(ind);
                         pkCols.add(encontrada);
                     
                     }
                 }
+                boolean hayNulos = tableCreate.hasNullValues(colIndices);
+                if(hayNulos){
+                    Frame.jTextArea2.setText("ERROR: La constraint: <<"+name+">> no puede agregarse porque existen tuplas nulas para la llave primaria.");
+                    return "ERROR";
+                }                
+                // Verificamos que no existan valores duplicados o nulos para las tuplas actuales
+                boolean duplicados = tableCreate.revisarDuplicados(colIndices);
+                if(duplicados){
+                    Frame.jTextArea2.setText("ERROR: La constraint: <<"+name+">> no puede agregarse porque existen tuplas duplicadas para la llave primaria.");
+                    return "ERROR";
+                }
+
                 //Creamos constraint
                 Constraint c = new Constraint(name,Constraint.PK,pkCols,tableCreate.name);
                 //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
@@ -440,6 +454,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                 String name = ctx.fkNombre().getText();
                 //Revisando que existan los nombre de las columnas en la tabla local
                 ArrayList<Columna> localCols = new ArrayList<Columna>();
+                ArrayList<Integer> localIndexes = new ArrayList<Integer>();
                 for(ParseTree n:ctx.localids()){
                     String text = n.getText();
                     Columna encontrada = findCol(text,colsCreate);
@@ -450,11 +465,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                     else{
                         localCols.add(encontrada);
-                    
+                        int in = tableCreate.getIndiceColumna(encontrada.nombre);
+                        localIndexes.add(in);
                     }
                 }
                 //Obteniendo la tabla que referencia
                 String refTable = ctx.idTabla().getText();
+
                 DBMetaData bd = DBMS.metaData.findDB(DBMS.currentDB);
                 TablaMetaData t = bd.findTable(refTable);
 
@@ -464,11 +481,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                         return "ERROR";                   
                 }
                 
-              
+                
                 //Si encontramos la tabla procedemos a buscar las columnas
                 else{
+                    Tabla tablaRef = Tabla.loadTable(refTable);
                     ArrayList<Constraint> foreignConstraints = Tabla.loadConstraints(refTable);
                     ArrayList<Columna> fkCols = new ArrayList<Columna>();
+                    ArrayList<Integer> fkIndexes = new ArrayList<Integer>();
                     ArrayList<Columna> cols = Tabla.loadColums(refTable);
                     //Buscamos las columnas de la primary key de la tabla foranea
                     ArrayList<Columna> columnasPrimary = new ArrayList<Columna>();
@@ -482,6 +501,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                         Frame.jTextArea2.setText("ERROR: No se encuentra la tabla de referencia: "+refTable);
                         return "ERROR";                   
                     }
+                    
                     for(ParseTree n:ctx.refids()){
                         String text = n.getText();
                         //Buscamos las columnas de la tabla
@@ -507,6 +527,8 @@ public class Loader extends SQLBaseVisitor<Object>{
                             }                           
                             //Agregamos la columna 
                             fkCols.add(encontrada);
+                            int in = tablaRef.getIndiceColumna(encontrada.nombre);
+                            fkIndexes.add(in);
 
                         }
                     }
@@ -525,6 +547,22 @@ public class Loader extends SQLBaseVisitor<Object>{
                             return "ERROR";                       
                         
                         }
+                    }
+                    //Para cada tupla de la tabla local verificamos que los valores existan en la tabla de referencia
+                    for(Tupla tupla: tableCreate.tuplas){
+                        //Obtenemos los valores de la tupla actual
+                        ArrayList<Object> currValues = new ArrayList<Object>();
+                        for(int i : localIndexes){
+                            Object valor = tupla.valores.get(i);
+                            currValues.add(valor);
+                        }
+                        //Revisamos si los valores actuales existen en la tabla de referencia
+                        boolean existenValores = tablaRef.contieneValor(currValues, fkIndexes);
+                        if(!existenValores){
+                            Frame.jTextArea2.setText("ERROR: no se puede crear la restriccion <<"+name+">> porque los valores de las tuplas no existen en la tabla de referencia.");
+                            return "ERROR";
+                        }
+                    
                     }
                     //Si todas las columnas tienen los mismo tipos, procedemos a crear la constraint
                     Constraint c = new Constraint(name,Constraint.FK,localCols,fkCols,refTable,this.tableCreate.name);
@@ -553,6 +591,23 @@ public class Loader extends SQLBaseVisitor<Object>{
                 
                 }
                 Expression e1 = (Expression)e;
+                //Verificamos que las tuplas actuales de la tabla cumplan con la restriccion
+                Tabla temp = new Tabla();
+                temp.name = tableCreate.name;
+                temp.columnas.addAll(tableCreate.columnas);
+                temp.tuplas.addAll(tableCreate.tuplas);
+                Loader.iterador = new IteradorTabla(temp,0);
+                for(int i =0; i<Loader.iterador.tabla.tuplas.size();i++){
+                    try {
+                    if(e1.isTrue() == null || e1.isTrue()){
+                        Frame.jTextArea2.setText("ERROR: no se puede insertar constraint <<"+name+">> porque algunas tuplas no cumplen con la restriccion.");
+                        return "ERROR";                                    
+                    }
+                    } catch (Exception ex) {
+                        Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+                    }    
+                }                
+                
                 Constraint c = new Constraint(name,Constraint.CHECK,e1,tableCreate.name,expr);
                 //Verificamos que no exista una constraint del mismo tipo con el mismo nombre
                 boolean existeConstraint = findConstraint(c,this.availableCons);
@@ -761,6 +816,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             
 //Si es add Column
             this.availableCons = tableCreate.constraints;
+            this.availableCols = tableCreate.columnas;
             this.colsCreate = tableCreate.columnas;            
             if(ctx.ADD()!=null && ctx.COLUMN()!=null){
                 String colName = ctx.columnName().getText();
@@ -828,8 +884,28 @@ public class Loader extends SQLBaseVisitor<Object>{
                                 Frame.jTextArea2.setText("ERROR: no se puede insertar primary key : <<"+cs.nombre+">> porque se crearan valores nulos en la tabla ");
                             }
                         }
-                    
+                        if(cs.tipo==Constraint.CHECK){
+                            Tabla temp = new Tabla();
+                            temp.name = tableCreate.name;
+                            temp.columnas.addAll(tableCreate.columnas);
+                            temp.tuplas.addAll(tableCreate.tuplas);
+                            Loader.iterador = new IteradorTabla(temp,0);
+                            for(int i =0; i<Loader.iterador.tabla.tuplas.size();i++){
+                                try {
+                                if(cs.expr.isTrue() == null || !cs.expr.isTrue()){
+                                    Frame.jTextArea2.setText("ERROR: no se puede insertar constraint <<"+cs.nombre+">> porque algunas tuplas no cumplen con la restriccion.");
+                                    return "ERROR";                                    
+                                }
+                                } catch (Exception ex) {
+                                    Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+                                }    
+                            }
+
+                        }                           
+                            
                     }
+                    
+                    
                     
                     
                     /*
@@ -903,6 +979,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                     return "ERROR";
                 } 
+                //Veriicamos si la tabla tiene un primary key con la columna especificada y si existe eliminamos la llave
+                Constraint consPK = tableCreate.containsPKWithColumn(yaExiste);
+                if(consPK!=null){
+                    tableCreate.eliminarConstraint(consPK.nombre);
+                
+                }
+                
                 //Elimnamos la columna correspondiente a la fila en cada tupla y la columna como atributo de la tabla y del metadata
                 tableCreate.eliminarColumna(yaExiste);
                 return true;
@@ -965,7 +1048,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                         }
                         return "ERROR";                    
                 }
-                //No hacemos ninguna revision si la columna existe o no pues esta siendo agregada en este momento.
+                //No hacemos ninguna revision si la columna existe  pues esta siendo agregada en este momento.
                 
                 //Creamos constraint
                 ArrayList<Columna> pkCols = new ArrayList<Columna>();
@@ -1611,7 +1694,8 @@ public class Loader extends SQLBaseVisitor<Object>{
                                 int indice = foreignTable.getIndiceColumna(c.nombre);
                                 indices.add(indice);
                                 Object valorBusqueda = valoresInsert.get(i);
-                                if(valorBusqueda == null){ continue;} //Si es nulo continuamos
+                                if(valorBusqueda == null){ //Si es nulo reportamos CONTINUAMOS
+                                    continue;} 
                                 i++;
                             }
                             boolean encontrado = foreignTable.contieneValor(valoresInsert, indices);
@@ -1647,7 +1731,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                             Expression e = cons.expr;
                             try {
                                 //No hacemos ningun for porque solo queremos evaluar la tupla que vamos a insertar
-                                if(!e.isTrue()){
+                                if(e.isTrue()==null || !e.isTrue()){
                                   if(Frame.useVerbose){
                                         Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
                                    }
@@ -1964,11 +2048,11 @@ public class Loader extends SQLBaseVisitor<Object>{
                         }
                         
                         //Revisamos si hay valores nulos
-                        boolean contieneNulls = t.hasNullValues(localIndexes,currentTupla);
+                       /* boolean contieneNulls = t.hasNullValues(localIndexes,currentTupla);
                         if(contieneNulls){
                             Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque crea valores nulos para llave foranea");
                             return "ERROR";
-                        }                         
+                        }  */                       
                         boolean contieneValores = foreign.contieneValor(checkValues, indexValues);
                         if(!contieneValores){
                             Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">> porque no se encuentra el valor de la llave foranea");
@@ -1983,7 +2067,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                         temp.tuplas.add(currentTupla);
                         Loader.iterador = new IteradorTabla(temp,0);
                         try {
-                            if(!cons.expr.isTrue()){
+                            if(cons.expr.isTrue() == null || !cons.expr.isTrue()){
                                 Frame.jTextArea2.setText("ERROR: la actualizacion viola la restriccion <<"+cons.nombre+">>.");
                                 return "ERROR";                                    
                             }
