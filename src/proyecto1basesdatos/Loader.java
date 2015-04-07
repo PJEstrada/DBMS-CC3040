@@ -1905,7 +1905,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             for(int j =0;j<Loader.iterador.tabla.tuplas.size();j++){
                 Tupla tuplaActual = Loader.iterador.tabla.tuplas.get(j);
                 try {
-                    if(where.isTrue()){
+                    if(where.isTrue()!= null && where.isTrue()){
                        numModificadas++;
                        t.actualizarTupla(valores, indicesColumnas, j);
                        tuplasWhere.add(tuplaActual);
@@ -2512,7 +2512,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                 for(int j =0;j<Loader.iterador.tabla.tuplas.size();j++){
                     Tupla tuplaActual = Loader.iterador.tabla.tuplas.get(j);
                     try {
-                        if(where.isTrue()){
+                        if(where.isTrue()!=null && where.isTrue()){
                             resultSelect.add(tuplaActual);
 
                         }

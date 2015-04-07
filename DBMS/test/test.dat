@@ -2,7 +2,7 @@ Base de Datos: test
 Numero Tablas: 2
 
 Tabla: films 
-Cantidad de Registros: 4
+Cantidad de Registros: 5
 code TIPO: INT,  tittle TIPO: CHAR(255),  release_date TIPO: DATE,  kind TIPO: CHAR(255),  duracion TIPO: INT,  
 CONSTRAINTS: 
 CONSTRAINT: pkeyfilms P_KEY ( code,  )  
