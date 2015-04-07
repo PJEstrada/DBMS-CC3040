@@ -23,6 +23,6 @@ public abstract class Expression implements Serializable {
         left = l;
         right =r;
     }
-    public abstract boolean isTrue() throws Exception;
+    public abstract Boolean isTrue() throws Exception;
     
 }

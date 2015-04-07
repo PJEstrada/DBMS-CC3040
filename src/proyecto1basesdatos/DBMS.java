@@ -33,6 +33,8 @@ public class DBMS {
     
     
     public DBMS(){
+
+      
         /* Test para tiempo serializacion / deserializacion*/
       /* int a =0;
         ArrayList<Tupla> ts = new ArrayList<Tupla>();

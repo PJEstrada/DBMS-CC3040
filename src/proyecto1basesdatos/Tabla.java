@@ -111,6 +111,21 @@ public class Tabla implements Serializable {
     
     }
     
+    public boolean hasNullValues(ArrayList<Integer> indicesColumnas, Tupla tupla){
+        for(int i: indicesColumnas){
+            Object valor = tupla.valores.get(i);
+            if(valor == null){
+                return true;
+            }
+        
+        }
+        return false;
+    }
+    
+    public boolean revisarDuplicados(ArrayList<Integer> indicesColumnas){
+        return false;
+    }
+    
     public boolean estaDuplicado(Object valor, int iColumna){
         int ocurrencias =0;
         for(Tupla t:this.tuplas){

@@ -43,7 +43,7 @@ public class DB {
        if (!directorio.exists()) {
          System.out.println("Creando  Directorio: " + nombre);
          if(Frame.useVerbose){
-                  Frame.jTextArea2.setText("Creando  Directorio: " + nombre+"\n ");
+                  Frame.jTextArea2.append("Creando  Directorio: " + nombre+"\n ");
          }
 
          boolean result = false;

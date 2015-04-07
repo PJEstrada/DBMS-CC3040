@@ -18,9 +18,15 @@ public class NotExpression extends Expression implements Serializable{
     
     }
     @Override
-    public boolean isTrue() throws Exception{
-        boolean left= this.left.isTrue();
-        return !left;
+    public Boolean isTrue() throws Exception{
+        Boolean left= this.left.isTrue();
+        if( left == null){
+            return null;
+        }
+        else{
+            return !left;
+        }
+        
     }
     
 }
