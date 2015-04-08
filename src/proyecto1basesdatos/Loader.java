@@ -40,6 +40,7 @@ public class Loader extends SQLBaseVisitor<Object>{
         ArrayList<Columna> availableCols;
         ArrayList<Constraint> availableCons;
         static IteradorTabla iterador;
+        Tabla temp2 = null;
         
         public Loader(DBMS dbms){
             this.dbms = dbms;
@@ -2561,9 +2562,20 @@ public class Loader extends SQLBaseVisitor<Object>{
             
             }
             ArrayList<Orders> orderBy = new ArrayList();
+            temp2=new Tabla();
+                temp2.name = temp.name;
+                temp2.columnas.addAll(colsSelect);
+                temp2.tuplas.addAll(resultadoFinal);
+                //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos  - resultadoFinal
+                
             if(ctx.orderExpr()!=null){
                 for(OrderTermContext n: ctx.orderExpr().orderTerm()){
                     String colName = n.colName().getText();
+                    Columna a = findCol(colName, temp2.columnas);
+                    if(a == null){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+colName);
+                        return "ERROR";
+                    }
                     String order = "";
                     if(n.ASC()==null && n.DESC()==null){
                         order = "ASC";
@@ -2577,13 +2589,6 @@ public class Loader extends SQLBaseVisitor<Object>{
                     Orders oN = new Orders(colName,order);
                     orderBy.add(oN);
                 }
-            
-            
-                Tabla temp2=new Tabla();
-                temp2.name = temp.name;
-                temp2.columnas.addAll(colsSelect);
-                temp2.tuplas.addAll(resultadoFinal);
-                //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos  - resultadoFinal
                 ComparatorColumn com = new ComparatorColumn(temp2, orderBy);
                 com.order();
                 System.out.println("--------------------------------");
@@ -2594,11 +2599,11 @@ public class Loader extends SQLBaseVisitor<Object>{
             //Agregamos el resultado al JTable (pendiente)
             ArrayList<String> columnsName = new ArrayList();
             ArrayList<ArrayList<String>> dataToFill = new ArrayList();
-            for(Columna c: colsSelect){
+            for(Columna c: temp2.columnas){
                 columnsName.add(c.nombre);
             }
-           
-            for(Tupla tN : resultadoFinal){
+            
+            for(Tupla tN : temp2.tuplas){
                     ArrayList<String> tempFill = new ArrayList();
                 for(Object ob : tN.valores){
                     if(ob == null){
