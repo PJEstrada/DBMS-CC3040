@@ -604,12 +604,16 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitShowTableStmt(SQLParser.ShowTableStmtContext ctx) {
+            if(DBMS.currentDB==null){
+                Frame.jTextArea2.setText("ERROR: No existe nin`guna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                return "ERROR";
+            
+            }
             String dbActual = DBMS.currentDB;
             //ArraysList para crear el resultado a mostrar
             ArrayList<String> tablesHere = DBMS.metaData.allTable(dbActual);
             ArrayList<String> encabezado = new ArrayList<String>();
             ArrayList<ArrayList<String>> filas = new ArrayList<ArrayList<String>>();
-            
             //Se recorre el arraylist obtenido del metodo para preparar las filas
             encabezado.add("Tables in "+dbActual);
             for(int i = 0; i<tablesHere.size(); i++){
@@ -624,6 +628,9 @@ public class Loader extends SQLBaseVisitor<Object>{
             Frame.forResults.add(results);
             Frame.forResults.revalidate();
             Frame.forResults.repaint();
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Mostrando tablas de "+dbActual);
+            }
             return super.visitShowTableStmt(ctx);
 	}
 
@@ -670,6 +677,10 @@ public class Loader extends SQLBaseVisitor<Object>{
             Frame.forResults.add(result);
             Frame.forResults.revalidate();
             Frame.forResults.repaint();
+            
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Mostrando columnas de "+nameTable);
+            }
             return super.visitShowColumnsStmt(ctx);
 	}
 
@@ -753,7 +764,12 @@ public class Loader extends SQLBaseVisitor<Object>{
             tableCreate.guardarTabla();
             DBMS.metaData.writeMetadata();
             DBMS.guardar();
-            Frame.jTextArea2.setText("Tabla alterada correctamente. Se realizaron: "+ctx.accion().size()+" alteraciones-");
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("Tabla alterada correctamente. Se realizaron: "+ctx.accion().size()+" alteraciones-");
+            }
+            else{
+                Frame.jTextArea2.setText("Tabla alterada correctamente. Se realizaron: "+ctx.accion().size()+" alteraciones-");
+            }
             return true;
 	}
 
@@ -1653,7 +1669,7 @@ public class Loader extends SQLBaseVisitor<Object>{
                                         Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
                                    }
                                    else{
-                                       Frame.jTextArea2.append("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
+                                       Frame.jTextArea2.setText("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
                                    }                                     
                                     
                                     return "ERRROR";
@@ -2060,6 +2076,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                     numDeleted++;
                 }
                 boolean isOk = foreignDeleted(t);
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Verificandoo llaves foraneas para eliminacion...");
+                }
                 if(isOk){
                     t.guardarTabla();
                     DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
@@ -2098,6 +2117,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 }
                 boolean isOk = foreignDeleted(t);
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Verificando llaves foraneas para eliminacion...");
+                }
+
                 if(isOk){
                     t.guardarTabla();
                     DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
@@ -2111,7 +2134,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                         return "Error";
                 }
             }
-            Frame.jTextArea2.append("\nAVISO: Se han eliminado "+numDeleted +" registros.");
+            if(Frame.useVerbose){
+                Frame.jTextArea2.append("\nAVISO: Se han eliminado "+numDeleted +" registros.");
+            }
+            else{
+                Frame.jTextArea2.setText("\nAVISO: Se han eliminado "+numDeleted +" registros.");
+            }
+            
             return super. visitDeleteStmt(ctx);
         }
 	@Override
@@ -2207,6 +2236,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                 Frame.jTextArea2.setText("ERROR: No existe ninguna tabla con el nombre dado.");
                 return "ERROR";
             }
+            if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Borrando la tabla "+tablename);
+            }
             //Se borra la tabla
             d.tablas.remove(t);
             d.writeMetadata();
@@ -2224,7 +2256,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 f2.delete();
                 f3.delete();
             }
+            if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Tabla '"+tablename+ "' Borrada existosamente.");
+            }
+            else{
             Frame.jTextArea2.setText("Tabla '"+tablename+ "' Borrada existosamente.");
+            }
             return super.visitDropTableStmt(ctx);
 	}
 
@@ -2569,6 +2606,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                 //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos  - resultadoFinal
                 
             if(ctx.orderExpr()!=null){
+                if(Frame.useVerbose){
+                    Frame.jTextArea2.append("Ordenando las columnas...");
+                }
+
                 for(OrderTermContext n: ctx.orderExpr().orderTerm()){
                     String colName = n.colName().getText();
                     Columna a = findCol(colName, temp2.columnas);
@@ -2591,10 +2632,6 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
                 ComparatorColumn com = new ComparatorColumn(temp2, orderBy);
                 com.order();
-                System.out.println("--------------------------------");
-                for(Tupla t: temp.tuplas){
-                    System.out.println(t.toString());
-                }
             }
             //Agregamos el resultado al JTable (pendiente)
             ArrayList<String> columnsName = new ArrayList();
