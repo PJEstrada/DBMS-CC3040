@@ -2579,9 +2579,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
             
             
-                     
-                //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos
-                ComparatorColumn com = new ComparatorColumn(temp, orderBy);
+                Tabla temp2=new Tabla();
+                temp2.name = temp.name;
+                temp2.columnas.addAll(colsSelect);
+                temp2.tuplas.addAll(resultadoFinal);
+                //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos  - resultadoFinal
+                ComparatorColumn com = new ComparatorColumn(temp2, orderBy);
                 com.order();
                 System.out.println("--------------------------------");
                 for(Tupla t: temp.tuplas){
@@ -2596,7 +2599,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
            
             for(Tupla tN : resultadoFinal){
-                ArrayList<String> tempFill = new ArrayList();
+                    ArrayList<String> tempFill = new ArrayList();
                 for(Object ob : tN.valores){
                     if(ob == null){
                         tempFill.add("");
