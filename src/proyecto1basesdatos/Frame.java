@@ -214,6 +214,7 @@ public class Frame extends javax.swing.JFrame {
         ArrayList<String> wordsR = new ArrayList( Arrays.asList(wordsNot));
         
         String src = jTextArea1.getText();
+        src= src.replaceAll(",",", ");/*insert into films values (17,null,null,'Fiction',18) */
         //src+=" ";
         String srcFinal = "";
         String [] checkA = src.split(" ");
