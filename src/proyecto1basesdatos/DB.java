@@ -41,10 +41,8 @@ public class DB {
 
        //Si no existe el directorio lo creamos
        if (!directorio.exists()) {
-         System.out.println("Creando  Directorio: " + nombre);
-         if(Frame.useVerbose){
-                  Frame.jTextArea2.append("Creando  Directorio: " + nombre+"\n ");
-         }
+        Debug.agregar("Creando  Directorio: " + nombre+"\n ");
+
 
          boolean result = false;
 
@@ -61,17 +59,18 @@ public class DB {
              //Reescribimos la data de todo el dbms y sus dbs y tablas relacionadas llamando al metodo Write recursivamente
              DBMS.metaData.writeMetadata();
             // writeMetadata();
-             if(Frame.useVerbose){
-                Frame.jTextArea2.append("Creado el archivo metadata de la base de datos: \n");
-             }
+             Debug.agregar("Creado el archivo metadata de la base de datos: \n");
+
           } catch(SecurityException se){
              System.out.println("No es posible crear directorio, revise permisos de administrador. " + nombre);
-             Frame.jTextArea2.append("No es posible crear directorio, revise permisos de administrador. \n" + nombre);
+                    Debug.agregar("\n Base de datos "+name+" creada exitosamente." );
+                    if(!Frame.useVerbose){
+                        Frame.jTextArea2.setText("No es posible crear directorio, revise permisos de administrador. " + nombre);
+                    } 
           } 
          
-          if(result) {    
-            if(Frame.useVerbose){Frame.jTextArea2.append("Directorio creado en: "+directorio.getAbsolutePath());}
-            System.out.println("Directorio creado en: "+directorio.getAbsolutePath());  
+          if(result) {   
+            Debug.agregar("Directorio creado en: "+directorio.getAbsolutePath());
           }
        }
        // Si ya existe lanzamos una exepcion para reportar error    
@@ -100,31 +99,28 @@ public class DB {
         boolean existe = directorio.exists();
         if(existe){
             // Buscamos la metaData de la base de datos
-            if(Frame.useVerbose){
-                Frame.jTextArea2.append("Buscando la base de datos...");
-            }
+            Debug.agregar("Buscando la base de datos...");
+
             DBMetaData db = DBMS.metaData.findDB(name);
             if(db!=null){
                 int reg = sumaRegistros(db);
                 int input = JOptionPane.showConfirmDialog((Component) null, "Esta seguro que desea eliminar "+name+" con "+reg+" Registros?","alert", JOptionPane.OK_CANCEL_OPTION);
                 if(input==JOptionPane.OK_OPTION){
                     //Destruimos directorio
-                    if(Frame.useVerbose){
-                        Frame.jTextArea2.append("Eliminando directorio...");
-                    }   
+                    Debug.agregar("Eliminando directorio...");
+                
+ 
                     deleteFolder(directorio);     
                     //Eliminamos la metaData de la base de datos
-                    if(Frame.useVerbose){
-                        Frame.jTextArea2.append("Eliminando metadata...");
-                    } 
+                    Debug.agregar("Eliminando metadata...");
+
                     DBMS.metaData.dbs.remove(db);
                     DBMS.guardar();
-                    if(Frame.useVerbose){
-                        Frame.jTextArea2.append("Base de datos "+name+" Eliminada."); 
-                    } 
-                    else{
-                         Frame.jTextArea2.setText("Base de datos "+name+" Eliminada."); 
-                    }
+                    Debug.agregar("Base de datos "+name+" Eliminada.");
+                    if(!Frame.useVerbose){
+                        Frame.jTextArea2.setText("Base de datos "+name+" Eliminada.");
+                    }                       
+
                                   
                 }
             }
@@ -146,7 +142,7 @@ public class DB {
             d.nombreDB =nameB;
             //Renombramos folder
             if(Frame.useVerbose){
-                Frame.jTextArea2.append("Renombrando folder...");
+                Debug.agregar("Renombrando folder...");
             }
             renameFolder(nameA,nameB);
             //Eliminamos el .dat con el nombre anterior
@@ -155,22 +151,26 @@ public class DB {
              directorio.delete();
             //Guardamos los cambios y escribimos la nuevaMetadata
             DBMS.guardar();
-            if(Frame.useVerbose){
-                Frame.jTextArea2.append("Reescribiendo la metadata");
-            }
+            
+            Debug.agregar("Reescribiendo la metadata");
+            
             DBMS.metaData.writeMetadata();
-            if(Frame.useVerbose){
-                 Frame.jTextArea2.append("Base de datos: "+nameA+" Modificada a : "+nameB);
+            
+            Debug.agregar("Base de datos: "+nameA+" Modificada a : "+nameB);
+            if(!Frame.useVerbose){
+                Frame.jTextArea2.setText("Base de datos: "+nameA+" Modificada a : "+nameB);
             }
-            else{
-             Frame.jTextArea2.setText("Base de datos: "+nameA+" Modificada a : "+nameB);
-            }
+
             return true;
         
         }
         //Si no la encontramos lanzamos error
         else{
-            Frame.jTextArea2.setText("Error: No se encuentra metaData de la base de datos"+nameA);
+            Debug.agregar("Error: No se encuentra metaData de la base de datos"+nameA);
+            if(!Frame.useVerbose){
+                Frame.jTextArea2.setText("Error: No se encuentra metaData de la base de datos"+nameA);
+            }            
+           
             return false;
         }
     }

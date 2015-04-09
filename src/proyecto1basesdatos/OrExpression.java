@@ -17,7 +17,13 @@ public class OrExpression extends Expression implements Serializable{
     public Boolean isTrue() throws Exception{
         Boolean left= this.left.isTrue();
         Boolean right = this.right.isTrue();
-        if(left == null || right == null){
+        if(left == true && right == null){
+            return true;
+        }
+        else if(left == null && right == true){
+            return true;
+        }       
+        else if (left == null && right == null){
             return null;
         }
         else{

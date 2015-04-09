@@ -41,3 +41,75 @@ UPDATE A SET idSerial = NULL WHERE estudiante = 3
 INSERT INTO films VALUES (17,NULL,NULL,'Ficcion',80)
 // ERROR si inserto null en pk
 INSERT INTO films VALUES (NULL,NULL,NULL,'Ficcion',80)
+
+
+//Verificar valores nulos y duplocados en PK
+INSERT INTO films VALUES (NULL,'myMovie','1999-03-03','Ficcion',80); 
+INSERT INTO films VALUES (NULL,'myMovie2','1999-03-03','Ficcion',75); 
+INSERT INTO films VALUES (15,'myMovie3','1999-03-03','Ficcion',60);
+INSERT INTO films(code, duracion,release_date,kind) VALUES (16,90,'1999-03-03','Drama')
+ALTER TABLE films ADD CONSTRAINT pkeyfilms PRIMARY KEY (code)
+
+//Verificar duplicados en tuplas 
+INSERT INTO films VALUES (13,'myMovie','1999-03-03','Ficcion',14); 
+INSERT INTO films VALUES (14,'myMovie2','1999-03-03','Ficcion',14); 
+INSERT INTO films VALUES (13,'myMovie3','1999-03-03','Ficcion',14);
+INSERT INTO films(code, duracion,release_date,kind) VALUES (16,90,'1999-03-03','Drama')
+ALTER TABLE films ADD CONSTRAINT pkeyfilms PRIMARY KEY (code,duracion)
+
+//Verificando Foreign Keys en add Constraint
+CREATE TABLE films
+(
+code INT,
+tittle CHAR(255),
+release_date DATE,
+kind CHAR(255),
+duracion INT,
+
+CONSTRAINT pkeyfilms PRIMARY KEY (code,duracion)
+
+)
+
+CREATE TABLE A
+(
+  idSerial INT,
+  estudiante INT,
+
+  CONSTRAINT pkeyA PRIMARY KEY (idSerial),
+  
+)
+INSERT INTO films VALUES (13,'myMovie','1999-03-03','Ficcion',14); 
+INSERT INTO films VALUES (14,'myMovie2','1999-03-03','Ficcion',14); 
+INSERT INTO films VALUES (13,'myMovie3','1999-03-03','Ficcion',15);
+INSERT INTO films(code, duracion,release_date,kind) VALUES (16,90,'1999-03-03','Drama')
+
+INSERT INTO A VALUES (13,14); 
+INSERT INTO A VALUES (14,13); 
+INSERT INTO A VALUES (13,14);
+INSERT INTO A VALUES (16,90);
+
+ALTER TABLE A ADD CONSTRAINT fkeyAsignacion FOREIGN KEY (idSerial,estudiante) REFERENCES films (code,duracion)
+
+
+// Verificando CHECK EN ADD CONSTRAINT
+CREATE TABLE asignacion
+(
+  idserial INT,
+  estudianteid INT,
+  universidadid INT,
+  materia CHAR(255),
+  nota INT,
+  fecha_ingreso DATE,
+  CONSTRAINT pkeyAsignacion PRIMARY KEY (idserial,estudianteid),
+  
+)
+INSERT INTO asignacion VALUES (2,2,2,'test2',6);
+INSERT INTO asignacion VALUES (3,3,3,'test3',5);
+INSERT INTO asignacion VALUES (4,4,4,'test4',7);
+INSERT INTO asignacion VALUES (5,5,5,'test5',1);
+INSERT INTO asignacion VALUES (6,6,6,'test6',1);
+INSERT INTO asignacion VALUES (7,7,7,'test7',12);
+INSERT INTO asignacion VALUES (8,8,8,'test8',9);
+INSERT INTO asignacion VALUES (9,9,9,'test9',5);
+
+ALTER TABLE Asignacion ADD CONSTRAINT checkNota CHECK (nota<10 )

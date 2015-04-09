@@ -79,7 +79,7 @@ public class DBMSMetaData implements Serializable {
     
     public DBMetaData findDB(String name){      
         for(DBMetaData d: dbs){
-            if(d.nombreDB.equals(name)){
+            if(d.nombreDB.equalsIgnoreCase(name)){
                 return d;
             
             }

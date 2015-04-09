@@ -110,6 +110,16 @@ public class Tabla implements Serializable {
         return false;
     
     }
+    public boolean hasNullValues(ArrayList<Integer> indicesColumnas){
+        for(Tupla t: this.tuplas){
+            if(hasNullValues(indicesColumnas,t)){
+                return true;
+            }
+        
+        }
+       return false;
+    
+    }
     
     public boolean hasNullValues(ArrayList<Integer> indicesColumnas, Tupla tupla){
         for(int i: indicesColumnas){
@@ -123,9 +133,38 @@ public class Tabla implements Serializable {
     }
     
     public boolean revisarDuplicados(ArrayList<Integer> indicesColumnas){
+        int k =0;
+        for(Tupla t: this.tuplas){
+            //Obtenemos los valores de las columnas especificadas en la tupla actual
+            ArrayList<Object> values = new ArrayList<Object>();
+            for(int j : indicesColumnas){
+                Object v = t.valores.get(j);
+                values.add(v);
+            }
+            //Revisamos si la tupla esta duplicada
+            boolean duplicado = estaDuplicado(values,indicesColumnas,k);
+            if(duplicado){
+                return true;
+            }
+            k++;
+        }
         return false;
     }
     
+    public Constraint containsPKWithColumn(Columna col){
+        for(Constraint c: this.constraints){
+            if(c.tipo== Constraint.PK){
+                for(Columna c1:c.colsPkeys){
+                    if(c1.nombre.equalsIgnoreCase(col.nombre)){
+                        return c;
+                    }
+                }
+            }
+        
+        }
+        return null;
+    
+    }
     public boolean estaDuplicado(Object valor, int iColumna){
         int ocurrencias =0;
         for(Tupla t:this.tuplas){
@@ -235,7 +274,73 @@ public class Tabla implements Serializable {
         return false;
     
     }    
+    public boolean estaDuplicado(ArrayList<Object> valores, ArrayList<Integer> iColumnas, int exceptIndex){    
+        int ocurrencias =0;
+        int indice =0;
+        for(Tupla t:this.tuplas){
+            if(indice==exceptIndex){
+                indice++;
+                continue;
+                
+            }
+            boolean result = true;
+            for(int i =0;i<valores.size();i++){             
+                Object v1 = valores.get(i);
+                int iColumna = iColumnas.get(i);
+                Object v2 = t.valores.get(iColumna);
+                if(v2 instanceof Integer){
+                    int v2c = (Integer) v2;
+                    int valorc = (Integer) v1;
+                    if(v2c!=valorc){
+                        result = false;
+                        break;
+                    }
+                 }
+                 else if( v2 instanceof Float){
+                     if(v2 instanceof Float){
+                         float v2c = (Float) v2;
+                         float valorc = (Float) v1;
+                         if(v2c != valorc){
+                             result = false;
+                             break;
+                         }
+
+                     }
+                 }
+
+                 else if (v2 instanceof String){
+                     String v2c = (String) v2.toString();
+                     String valorc = v1.toString();
+                     if(!v2c.equals(valorc)){
+                         result = false;
+                         break;
+                     }
+
+                 }
+
+                 else if(v2 instanceof LocalDateTime){
+                     LocalDate v2c = (LocalDate) v2;
+                     LocalDate valorc = (LocalDate) v1;
+                     if(!v2c.equals(valorc)){
+                         result = false;
+                         break;
+                     }
+
+                 }           
+            }
+            if(result){
+                ocurrencias++;
+                result =  true;
+            }
+            
+            indice++;
+        }
+        if(ocurrencias>=1){
+            return true;
+        }
+        else{return false;}
     
+    }         
     public boolean estaDuplicado(ArrayList<Object> valores, ArrayList<Integer> iColumnas){    
         int ocurrencias =0;
         for(Tupla t:this.tuplas){
