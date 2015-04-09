@@ -75,10 +75,12 @@ public class JSwitchBox extends AbstractButton{
             setText( trueLabel );
             setBackground( green );
             Frame.useVerbose = true;
+            Frame.jTextArea2.setText(Debug.a);
         } else {
             setBackground( red );
             setText( falseLabel );
             Frame.useVerbose = false;
+            Frame.jTextArea2.setText("");
         }
         super.setSelected( b );
     }

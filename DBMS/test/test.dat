@@ -1,17 +1,44 @@
 Base de Datos: test
-Numero Tablas: 2
+Numero Tablas: 6
 
 Tabla: films 
-Cantidad de Registros: 5
+Cantidad de Registros: 1
 code TIPO: INT,  tittle TIPO: CHAR(255),  release_date TIPO: DATE,  kind TIPO: CHAR(255),  duracion TIPO: INT,  
 CONSTRAINTS: 
 CONSTRAINT: pkeyfilms P_KEY ( code,  )  
  
-Tabla: A 
-Cantidad de Registros: 4
-idSerial TIPO: INT,  estudiante TIPO: INT,  
+Tabla: prenda 
+Cantidad de Registros: 5
+id_prenda TIPO: INT,  prenda TIPO: CHAR(10),  
 CONSTRAINTS: 
-CONSTRAINT: pkeyA P_KEY ( idSerial,  )  
- CONSTRAINT: fkeyAsignacion F_KEY (idSerial, ) REFERENCESfilms (code, )  
+CONSTRAINT: prenda_pkey P_KEY ( id_prenda,  )  
+ 
+Tabla: marca 
+Cantidad de Registros: 4
+idmarca TIPO: INT,  marca TIPO: CHAR(15),  
+CONSTRAINTS: 
+CONSTRAINT: marca_pkey P_KEY ( idmarca,  )  
+ 
+Tabla: color 
+Cantidad de Registros: 9
+idcolor TIPO: INT,  color TIPO: CHAR(15),  
+CONSTRAINTS: 
+CONSTRAINT: color_pkey P_KEY ( idcolor,  )  
+ 
+Tabla: talla 
+Cantidad de Registros: 7
+idtalla TIPO: INT,  talla TIPO: CHAR(4),  
+CONSTRAINTS: 
+CONSTRAINT: talla_pkey P_KEY ( idtalla,  )  
+ 
+Tabla: inventario 
+Cantidad de Registros: 10000
+id_inventario TIPO: INT,  color_idcolor TIPO: INT,  talla_idtalla TIPO: INT,  marca_idmarca TIPO: INT,  prenda_id_prenda TIPO: INT,  descuento TIPO: FLOAT,  cantDescuento TIPO: INT,  precio TIPO: FLOAT,  
+CONSTRAINTS: 
+CONSTRAINT: inventario_pkey P_KEY ( id_inventario,  )  
+ CONSTRAINT: inventario_FKIndex1 F_KEY (prenda_id_prenda, ) REFERENCESprenda (id_prenda, )  
+ CONSTRAINT: inventario_FKIndex3 F_KEY (talla_idtalla, ) REFERENCEStalla (idtalla, )  
+ CONSTRAINT: inventario_FKIndex4 F_KEY (color_idcolor, ) REFERENCEScolor (idcolor, )  
+ CONSTRAINT: inventario_FKindex2 F_KEY (marca_idmarca, ) REFERENCESmarca (idmarca, )  
  
 

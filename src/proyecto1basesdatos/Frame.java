@@ -218,15 +218,21 @@ public class Frame extends javax.swing.JFrame {
         String [] checkA = src.split(" ");
         for (String checkA1 : checkA) {
             String tempW = checkA1.toUpperCase();
+            //System.out.println("string uppercase: "+tempW);
             tempW = tempW.replaceAll("\\s+", "");
+           // srcFinal += tempW + " ";
             if (wordsR.contains(tempW)) {
                 srcFinal += tempW + " ";
             } else {
                 srcFinal += checkA1 + " ";
             }
         }
-        System.out.println("El final es "+srcFinal);
+        //System.out.println("El final es "+srcFinal);
+
         jTextArea2.setText("");
+        
+
+        
         this.error=false;
         try{
             SQLLexer lexer  = new SQLLexer(new ANTLRInputStream(srcFinal));
@@ -241,7 +247,11 @@ public class Frame extends javax.swing.JFrame {
             if (!error) {
                 dbms.executeQuery(srcFinal);
                 System.out.print("  ");
-            }            
+                if(Frame.useVerbose){
+                    jTextArea2.setText(Debug.a);
+                }
+            }  
+            
         }
         
         catch(Exception e){

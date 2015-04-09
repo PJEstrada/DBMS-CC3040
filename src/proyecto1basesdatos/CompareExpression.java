@@ -30,7 +30,7 @@ public class CompareExpression extends Expression implements Serializable{
         switch(op){
             case "=":
                 if(left.getValue()==null || right.getValue() == null){
-                    return left.getValue() == right.getValue();
+                    return null;
                 }
                 else if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
@@ -95,7 +95,7 @@ public class CompareExpression extends Expression implements Serializable{
                 
             case "<>":
                 if(left.getValue()==null || right.getValue() == null){
-                    return left.getValue() != right.getValue();
+                    return null;
                 }                
                 if(left.getValue() instanceof Integer && right.getValue() instanceof Integer){
                     int il = (int)left.getValue();
