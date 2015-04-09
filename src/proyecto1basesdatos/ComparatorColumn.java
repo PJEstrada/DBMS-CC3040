@@ -162,8 +162,28 @@ public class ComparatorColumn {
     public int giveNewOrder(int typeToCompare, Tupla t1, Tupla t2, int numberColumnToGuide, String toFollow){
         switch(typeToCompare){
             case(0):
-                int compare1 = (int) t1.valores.get(numberColumnToGuide);
-                int compare2 = (int) t2.valores.get(numberColumnToGuide);
+                Integer compare1 = (Integer) t1.valores.get(numberColumnToGuide);
+                Integer compare2 = (Integer) t2.valores.get(numberColumnToGuide);
+                if(compare1 == null && compare2!=null)
+                {
+                    if(toFollow.equals("ASC")){
+                        return 1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return -1;
+                    }
+                }
+                else if(compare2 == null && compare1 != null){
+                    if(toFollow.equals("ASC")){
+                        return -1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return 1;
+                    }
+                }
+                else if(compare2==null && compare1 == null){
+                    return 0;
+                }
                 int result = compare1 - compare2;
                 if (toFollow.equals("ASC")){
                     if(result > 0){
@@ -189,8 +209,28 @@ public class ComparatorColumn {
                 }
                 break;
             case (1):
-                float compareF1 = (float) t1.valores.get(numberColumnToGuide);
-                float compareF2 = (float) t2.valores.get(numberColumnToGuide);
+                Float compareF1 = (Float) t1.valores.get(numberColumnToGuide);
+                Float compareF2 = (Float) t2.valores.get(numberColumnToGuide);
+                if(compareF1 == null && compareF2!=null)
+                {
+                    if(toFollow.equals("ASC")){
+                        return 1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return -1;
+                    }
+                }
+                else if(compareF2 == null && compareF1 != null){
+                    if(toFollow.equals("ASC")){
+                        return -1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return 1;
+                    }
+                }
+                else if(compareF2==null && compareF1 == null){
+                    return 0;
+                }
                 float resultF = compareF1 - compareF2;
                 if (toFollow.equals("ASC")){
                     if(resultF > 0){
@@ -218,6 +258,26 @@ public class ComparatorColumn {
             case (2):
                 String compareS1 = (String) t1.valores.get(numberColumnToGuide);
                 String compareS2 = (String) t2.valores.get(numberColumnToGuide);
+                if(compareS1 == null && compareS2!=null)
+                {
+                    if(toFollow.equals("ASC")){
+                        return 1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return -1;
+                    }
+                }
+                else if(compareS2 == null && compareS1 != null){
+                    if(toFollow.equals("ASC")){
+                        return -1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return 1;
+                    }
+                }
+                else if(compareS2==null && compareS1 == null){
+                    return 0;
+                }
                 int resultS = compareS1.compareTo(compareS2);
                 if (toFollow.equals("ASC")){
                     if(resultS > 0){
@@ -245,6 +305,26 @@ public class ComparatorColumn {
             case(3):
                 LocalDate compareD1 = (LocalDate) t1.valores.get(numberColumnToGuide);
                 LocalDate compareD2 = (LocalDate) t2.valores.get(numberColumnToGuide);
+                if(compareD1 == null && compareD2!=null)
+                {
+                    if(toFollow.equals("ASC")){
+                        return 1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return -1;
+                    }
+                }
+                else if(compareD2 == null && compareD1 != null){
+                    if(toFollow.equals("ASC")){
+                        return -1;
+                    }
+                    else if(toFollow.equals("DESC")){
+                        return 1;
+                    }
+                }
+                else if(compareD2==null && compareD1 == null){
+                    return 0;
+                }
                 int resultD = compareD1.compareTo(compareD2);
                 if (toFollow.equals("ASC")){
                     if(resultD > 0){
