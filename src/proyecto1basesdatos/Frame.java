@@ -229,7 +229,7 @@ public class Frame extends javax.swing.JFrame {
                 srcFinal += checkA1 + " ";
             }
         }
-        System.out.println("El final es "+srcFinal);
+       
 
         jTextArea2.setText("");
         
@@ -351,24 +351,30 @@ public class Frame extends javax.swing.JFrame {
                 String[] wordsNot = {"CREATE","DATABASE", "DATABASES", "ALTER", "DROP", "SHOW", "USE", "TABLE", "INT", "FLOAT",
                               "DATE", "CHAR", "CONSTRAINT", "PRIMARY", "KEY", "FOREIGN", "CHECK", "REFERENCES", "TABLES",
                                 "COLUMN", "FROM", "ADD", "AND", "OR", "NOT", "INSERT", "INTO", "WHERE", "UPDATE", "SET",
-                                "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO"};
+                                "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO", "NULL", "NULL,"};
         
-                ArrayList<String> wordsR = new ArrayList( Arrays.asList(wordsNot));
-
+               ArrayList<String> wordsR = new ArrayList( Arrays.asList(wordsNot));
+        
                 String src = jTextArea1.getText();
+                src= src.replaceAll(",",", ");/*insert into films values (17,null,null,'Fiction',18)*/
                 //src+=" ";
                 String srcFinal = "";
-                String [] checkA = src.split(" ");
+                String [] checkA = src.split(" "); //[\\s,;]+
                 for (String checkA1 : checkA) {
                     String tempW = checkA1.toUpperCase();
+                    //System.out.println("string uppercase: "+tempW);
                     tempW = tempW.replaceAll("\\s+", "");
+                   // srcFinal += tempW + " ";
                     if (wordsR.contains(tempW)) {
                         srcFinal += tempW + " ";
                     } else {
                         srcFinal += checkA1 + " ";
                     }
                 }
-                System.out.println("El final es "+srcFinal);
+               
+
+                jTextArea2.setText("");
+
                 jTextArea2.setText("");
                 Frame.this.error=false;
                 try{
