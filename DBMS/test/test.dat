@@ -1,12 +1,6 @@
 Base de Datos: test
-Numero Tablas: 6
+Numero Tablas: 7
 
-Tabla: films 
-Cantidad de Registros: 1
-code TIPO: INT,  tittle TIPO: CHAR(255),  release_date TIPO: DATE,  kind TIPO: CHAR(255),  duracion TIPO: INT,  
-CONSTRAINTS: 
-CONSTRAINT: pkeyfilms P_KEY ( code,  )  
- 
 Tabla: prenda 
 Cantidad de Registros: 5
 id_prenda TIPO: INT,  prenda TIPO: CHAR(10),  
@@ -40,5 +34,18 @@ Base de Datos: test
  CONSTRAINT: inventario_FKIndex3 F_KEY (talla_idtalla, ) REFERENCEStalla (idtalla, )  
  CONSTRAINT: inventario_FKIndex4 F_KEY (color_idcolor, ) REFERENCEScolor (idcolor, )  
  CONSTRAINT: inventario_FKindex2 F_KEY (marca_idmarca, ) REFERENCESmarca (idmarca, )  
+ 
+Tabla: films 
+Cantidad de Registros: 0
+code TIPO: INT,  tittle TIPO: CHAR(255),  release_date TIPO: DATE,  kind TIPO: CHAR(255),  duracion TIPO: INT,  
+CONSTRAINTS: 
+CONSTRAINT: pkeyfilms P_KEY ( code,  )  
+ 
+Tabla: A 
+Cantidad de Registros: 0
+idSerial TIPO: INT,  estudiante TIPO: INT,  
+CONSTRAINTS: 
+CONSTRAINT: pkeyA P_KEY ( idSerial,  )  
+ CONSTRAINT: fkeyAsignacion F_KEY (idSerial, ) REFERENCESfilms (code, )  
  
 

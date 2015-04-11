@@ -1156,7 +1156,14 @@ public class Loader extends SQLBaseVisitor<Object>{
                 //Creamos constraint
                 ArrayList<Columna> pkCols = new ArrayList<Columna>();
                 pkCols.add(this.addedCol);
-                
+                // Verificamos que no existan valores agregados, porque sino se agregaran valores nulos a la primary key
+                if(tableCreate.tuplas.size()>0){
+                    Debug.agregar("ERROR: La constraint no puede ser agregada porque habran valores nulos para la columna: "+this.addedCol.nombre);
+                    if(!Frame.useVerbose){
+                        Frame.jTextArea2.setText("ERROR: La constraint no puede ser agregada porque habran valores nulos para la columna: "+this.addedCol.nombre);
+                    }   
+                    return "ERROR"; 
+                }
                 Debug.agregar("Creando constraint...");
                 
                 Constraint c = new Constraint(name,Constraint.PK,pkCols,tableCreate.name);
@@ -2921,6 +2928,7 @@ public class Loader extends SQLBaseVisitor<Object>{
 
 	@Override
 	public Object visitFactor(SQLParser.FactorContext ctx) {
+            
             if(ctx.children.size()== 1){
                 return visit(ctx.primary());
             
