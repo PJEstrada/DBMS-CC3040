@@ -45,7 +45,7 @@ public class CompareExpression extends Expression implements Serializable{
                     return l.equalsIgnoreCase(r);
                 }
                 
-                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Float){
                     float l = (float) left.getValue();
                     float r = (float) right.getValue();
                     return l==r;
@@ -110,9 +110,9 @@ public class CompareExpression extends Expression implements Serializable{
                     return !l.equalsIgnoreCase(r);
                 }
                 
-                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
-                    float l = (float) left.getValue();
-                    float r = (float) right.getValue();
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Float){
+                    Float l = (Float) left.getValue();
+                    Float r = (Float) right.getValue();
                     return l!=r;
                 
                 }
@@ -142,14 +142,14 @@ public class CompareExpression extends Expression implements Serializable{
                 }                
                                 
                 else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
-                    float il = (float)left.getValue();
+                    Float il = (Float)left.getValue();
                     int ir = (int)right.getValue();
                     return il!=ir;
                                    
                 }                
                 else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
                     int il = (int)left.getValue();
-                    float ir = (float)right.getValue();
+                    Float ir = (Float)right.getValue();
                     return il!=ir;
                                    
                 }                  
@@ -178,9 +178,9 @@ public class CompareExpression extends Expression implements Serializable{
                     if(compare>0){return true;}
                     else if(compare<0||compare==0){return false;}
                 }
-                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
-                    float l = (float) left.getValue();
-                    float r = (float) right.getValue();
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Float){
+                    Float l = (Float) left.getValue();
+                    Float r = (Float) right.getValue();
                     return l>r;
                 
                 }
@@ -219,7 +219,7 @@ public class CompareExpression extends Expression implements Serializable{
                 }                
                 else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
                     int il = (int)left.getValue();
-                    float ir = (float)right.getValue();
+                    Float ir = (Float)right.getValue();
                     return il>ir;
                                    
                 }                            
@@ -246,9 +246,9 @@ public class CompareExpression extends Expression implements Serializable{
                     if(compare>0||compare==0){return true;}
                     else if(compare<0){return false;}
                 }
-                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
-                    float l = (float) left.getValue();
-                    float r = (float) right.getValue();
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Float){
+                    Float l = (Float) left.getValue();
+                    Float r = (Float) right.getValue();
                     return l>=r;
                 
                 }
@@ -280,14 +280,14 @@ public class CompareExpression extends Expression implements Serializable{
                 }                
                                 
                 else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
-                    float il = (float)left.getValue();
+                    Float il = (Float)left.getValue();
                     int ir = (int)right.getValue();
                     return il>=ir;
                                    
                 }                
                 else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
                     int il = (int)left.getValue();
-                    float ir = (float)right.getValue();
+                    Float ir = (Float)right.getValue();
                     return il>=ir;
                                    
                 }   
@@ -316,9 +316,9 @@ public class CompareExpression extends Expression implements Serializable{
                     if(compare<0){return true;}
                     else if(compare>0||compare==0){return false;}
                 }
-                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
-                    float l = (float) left.getValue();
-                    float r = (float) right.getValue();
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Float){
+                    Float l = (Float) left.getValue();
+                    Float r = (Float) right.getValue();
                     return l<r;
                 
                 }
@@ -351,14 +351,14 @@ public class CompareExpression extends Expression implements Serializable{
                 }                
                                 
                 else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
-                    float il = (float)left.getValue();
+                    Float il = (Float)left.getValue();
                     int ir = (int)right.getValue();
                     return il<ir;
                                    
                 }                
                 else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
                     int il = (int)left.getValue();
-                    float ir = (float)right.getValue();
+                    Float ir = (Float)right.getValue();
                     return il<ir;
                                    
                 } 
@@ -387,9 +387,9 @@ public class CompareExpression extends Expression implements Serializable{
                     if(compare<0|| compare==0){return true;}
                     else if(compare>0){return false;}
                 }
-                else if(left.getValue() instanceof Float || right.getValue() instanceof Float){
-                    float l = (float) left.getValue();
-                    float r = (float) right.getValue();
+                else if(left.getValue() instanceof Float && right.getValue() instanceof Float){
+                    Float l = (Float) left.getValue();
+                    Float r = (Float) right.getValue();
                     return l<=r;
                 
                 }
@@ -422,14 +422,14 @@ public class CompareExpression extends Expression implements Serializable{
                 }                
                                 
                 else if(left.getValue() instanceof Float && right.getValue() instanceof Integer){
-                    float il = (float)left.getValue();
+                    Float il = (Float)left.getValue();
                     int ir = (int)right.getValue();
                     return il<ir;
                                    
                 }                
                 else if(left.getValue() instanceof Integer && right.getValue() instanceof Float){
                     int il = (int)left.getValue();
-                    float ir = (float)right.getValue();
+                    Float ir = (Float)right.getValue();
                     return il<ir;
                                    
                 } 

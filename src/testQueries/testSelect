@@ -1,0 +1,19 @@
+SELECT id_inventario,prenda,color
+FROM inventario,prenda,color
+WHERE color = 'Blanco' AND prenda_id_prenda = id_prenda AND color_idcolor = idcolor;
+
+
+SELECT id_inventario,prenda,color,talla
+FROM inventario,prenda,color,talla
+WHERE color_idcolor = idcolor AND talla_idtalla = idtalla AND prenda_id_prenda = id_prenda AND (color = 'Rojo' OR color = 'Amarillo' OR color = 'Anaranjado' AND precio >50)
+
+
+SELECT id_inventario,prenda,color,marca,talla
+FROM inventario,prenda,color,talla,marca
+WHERE prenda_id_prenda = id_prenda AND color_idcolor = idcolor AND talla_idtalla = idtalla AND marca_idmarca = idmarca
+
+//12,000,000
+
+SELECT id_inventario,prenda,color,marca,talla
+FROM inventario,prenda,color,talla,marca
+WHERE prenda_id_prenda = id_prenda AND color_idcolor = idcolor AND talla_idtalla = idtalla AND marca_idmarca = idmarca

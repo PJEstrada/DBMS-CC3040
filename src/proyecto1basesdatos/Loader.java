@@ -94,10 +94,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 }
                 //Continuamos combinando con el resto de tablas
+                ArrayList<Tupla> tuplasActuales = new ArrayList<Tupla>();
+                ArrayList<Tupla> tuplasAnteriores = new ArrayList<Tupla>();
+                
                 for(int i =2; i<tablas.size();i++){
-                    ArrayList<Tupla> tuplasActuales = new ArrayList<Tupla>();
+                    tuplasActuales.clear();
                     tuplasActuales.addAll(tablas.get(i).tuplas);
-                    ArrayList<Tupla> tuplasAnteriores = new ArrayList<Tupla>();
+                    tuplasAnteriores.clear();
                     tuplasAnteriores.addAll(tuplasResultantes);
                     tuplasResultantes.clear();
                     for(Tupla t1: tuplasAnteriores){
@@ -1865,10 +1868,6 @@ public class Loader extends SQLBaseVisitor<Object>{
                             try {
                                 //No hacemos ningun for porque solo queremos evaluar la tupla que vamos a insertar
                                 if(!e.isTrue()){
-                                    Debug.agregar("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
-                                    if(!Frame.useVerbose){
-                                        Frame.jTextArea2.setText("\n ERROR: El valor de la tupla: "+nuevaTupla.toString() +"no cumple con la restriccion '"+cons.exprText+" ' .");
-                                    }                                           
                                     return "ERRROR";
                                     
                                 }
@@ -2382,11 +2381,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                     DBMS.guardar();
                 }
                 else{
+                        
                         Debug.agregar("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
                         return "Error";
                 }
             }
-            Debug.agregar("\nAVISO: Se han eliminado "+numDeleted +" registros.");
+                              
+                                    
             return super. visitDeleteStmt(ctx);
         }
 	@Override
@@ -2783,19 +2784,16 @@ public class Loader extends SQLBaseVisitor<Object>{
             }
             //Una vez tenemos todas las tablas calculamos el producto cartesiano de ellas
             Tabla temp = productoCartesiano(tablasFrom);
-            for(Tupla t: temp.tuplas){
-                System.out.println(t.toString());
-            }
-            
+          
             Loader.iterador = new IteradorTabla(temp,0);
             //Verificamos que existan las columnas del where en la tabla temporal agregandolas a las columnas disponibles
             this.availableCols = new ArrayList<Columna>();
             this.availableCols.addAll(temp.columnas);
             ArrayList<Tupla> resultSelect = new ArrayList<Tupla>(); 
             //Inicialmente agregamos al resultado toda la tabla, si hay where la vaciamos 
-            resultSelect.addAll(temp.tuplas);
+            boolean hayWhere = false;
             if(ctx.WHERE()!=null){
-                resultSelect = new ArrayList<Tupla>();
+                hayWhere = true;
                 Object where1 = visit(ctx.expression());
                 if(where1 instanceof String){
                     return "ERROR";
@@ -2815,7 +2813,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                     Loader.iterador.siguiente(); //Movemos el iterador a la siguiente tupla
                 }
             }
-            
+            if(!hayWhere){
+                resultSelect = temp.tuplas;
+            }
             //Verificamos que existan las columnas del select en la tabla temporal
             ArrayList<Columna> colsSelect = new ArrayList<Columna>();
             if(ctx.selectList()!=null){
@@ -2857,7 +2857,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             temp2=new Tabla();
                 temp2.name = temp.name;
                 temp2.columnas.addAll(colsSelect);
-                temp2.tuplas.addAll(resultadoFinal);
+                temp2.tuplas =resultadoFinal;
                 //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos  - resultadoFinal
                 
             if(ctx.orderExpr()!=null){
@@ -2894,9 +2894,10 @@ public class Loader extends SQLBaseVisitor<Object>{
             for(Columna c: temp2.columnas){
                 columnsName.add(c.nombre);
             }
+            System.out.print("Size: "+temp2.tuplas.size());
             
             for(Tupla tN : temp2.tuplas){
-                    ArrayList<String> tempFill = new ArrayList();
+                   ArrayList<String> tempFill = new ArrayList();
                 for(Object ob : tN.valores){
                     if(ob == null){
                         tempFill.add("");
@@ -3034,3 +3035,4 @@ public class Loader extends SQLBaseVisitor<Object>{
     
     
 }
+            
