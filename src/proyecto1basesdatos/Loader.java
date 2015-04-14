@@ -2487,7 +2487,7 @@ public class Loader extends SQLBaseVisitor<Object>{
             
             }              
             /*Borrar implica: 
-            1. Ver que base de datos estoy usando
+            1. Ver que base de datos estoy usando.
             2. Buscar la tabla si existe
             3. Borrar la tabla en la metadata
             4. Borrar en el archivo serealizable - deleteAllFilesWithName*/
