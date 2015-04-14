@@ -734,9 +734,11 @@ public class Loader extends SQLBaseVisitor<Object>{
 	@Override
 	public Object visitShowTableStmt(SQLParser.ShowTableStmtContext ctx) {
             if(DBMS.currentDB==null){
-                Frame.jTextArea2.setText("ERROR: No existe nin`guna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                Debug.agregar("ERROR: No existe nin`guna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("ERROR: No existe nin`guna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                }
                 return "ERROR";
-            
             }
             String dbActual = DBMS.currentDB;
             //ArraysList para crear el resultado a mostrar
@@ -757,9 +759,12 @@ public class Loader extends SQLBaseVisitor<Object>{
             Frame.forResults.add(results);
             Frame.forResults.revalidate();
             Frame.forResults.repaint();
-            if(Frame.useVerbose){
-                Frame.jTextArea2.append("Mostrando tablas de "+dbActual);
+
+            Debug.agregar("Mostrando tablas de "+dbActual+"\n");
+            if(!Frame.useVerbose){
+                Frame.jTextArea2.setText("Mostrando tablas de "+dbActual);
             }
+            
             return super.visitShowTableStmt(ctx);
 	}
 
@@ -770,8 +775,11 @@ public class Loader extends SQLBaseVisitor<Object>{
             DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
             TablaMetaData tm=d.findTable(nameTable);
             if(tm == null){
-                Frame.jTextArea2.setText("ERROR: La tabla  "+nameTable+" no existe dentro de "+DBMS.currentDB);
-                return "ERROR";   
+                Debug.agregar("ERROR: La tabla  "+nameTable+" no existe dentro de "+DBMS.currentDB+"\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("ERROR: La tabla  "+nameTable+" no existe dentro de "+DBMS.currentDB);
+                }
+                return "ERROR";
             }
             ArrayList<String> titulos1 = new ArrayList<String>();
             ArrayList<String> titulos2 = new ArrayList<String>();
@@ -807,9 +815,13 @@ public class Loader extends SQLBaseVisitor<Object>{
             Frame.forResults.revalidate();
             Frame.forResults.repaint();
             
-            if(Frame.useVerbose){
-                Frame.jTextArea2.append("Mostrando columnas de "+nameTable);
+
+            Debug.agregar("Mostrando columnas de "+nameTable+"\n");
+            if(!Frame.useVerbose){
+                Frame.jTextArea2.setText("Mostrando columnas de "+nameTable);
             }
+            
+            
             return super.visitShowColumnsStmt(ctx);
 	}
 
@@ -2308,8 +2320,12 @@ public class Loader extends SQLBaseVisitor<Object>{
         @Override
         public Object visitDeleteStmt(SQLParser.DeleteStmtContext ctx){
             if(DBMS.currentDB==null){
-                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                Debug.agregar("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                }
                 return "ERROR";
+                
             
             }              
             //Para cuando no tiene where
@@ -2317,9 +2333,6 @@ public class Loader extends SQLBaseVisitor<Object>{
             Tabla t = Tabla.loadTable(tablename);
             Loader.iterador = new IteradorTabla(t,0);
             int numDeleted = 0; 
-            
-                        
-            
             if(ctx.children.get(2).getChildCount() == 3){
                 for(Loader.iterador.indiceActual = 0; Loader.iterador.indiceActual< Loader.iterador.tabla.tuplas.size(); Loader.iterador.indiceActual++){
                     //Se revisa que no haya referencia a esta columna antes de eliminar
@@ -2327,9 +2340,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                     numDeleted++;
                 }
                 boolean isOk = foreignDeleted(t);
-                if(Frame.useVerbose){
-                    Frame.jTextArea2.append("Verificandoo llaves foraneas para eliminacion...");
+
+                Debug.agregar("Verificandoo llaves foraneas para eliminacion... \n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("Verificandoo llaves foraneas para eliminacion...");
                 }
+                
                 if(isOk){
                     t.guardarTabla();
                     DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
@@ -2339,7 +2355,11 @@ public class Loader extends SQLBaseVisitor<Object>{
                     DBMS.guardar();
                 }
                 else{
-                        Debug.agregar("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                        Debug.agregar("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas \n");
+                        if(!Frame.useVerbose){
+                            Frame.jTextArea2.setText("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                        }
+                        
                         return "Error";
                 }
                 
@@ -2368,10 +2388,13 @@ public class Loader extends SQLBaseVisitor<Object>{
                     }
                 }
                 boolean isOk = foreignDeleted(t);
-                if(Frame.useVerbose){
-                    Frame.jTextArea2.append("Verificando llaves foraneas para eliminacion...");
-                }
 
+                Debug.agregar("Verificando llaves foraneas para eliminacion...\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("Verificando llaves foraneas para eliminacion...");
+                }
+                
+                
                 if(isOk){
                     t.guardarTabla();
                     DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
@@ -2382,7 +2405,11 @@ public class Loader extends SQLBaseVisitor<Object>{
                 }
                 else{
                         
-                        Debug.agregar("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                        Debug.agregar("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas\n");
+                        if(!Frame.useVerbose){
+                            Frame.jTextArea2.setText("\n ERROR: No se puede eliminar la fila debido a que existen referencias a una de sus columnas");
+                        }
+                        
                         return "Error";
                 }
             }
@@ -2445,13 +2472,17 @@ public class Loader extends SQLBaseVisitor<Object>{
             Frame.forResults.add(results);
             Frame.forResults.revalidate();
             Frame.forResults.repaint();
+            Debug.agregar("Mostrando las bases de datos existentes ");
             return super.visitShowDbStmt(ctx);
 	}
 
 	@Override
 	public Object visitDropTableStmt(SQLParser.DropTableStmtContext ctx) {
             if(DBMS.currentDB==null){
-                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                Debug.agregar("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                }
                 return "ERROR";
             
             }              
@@ -2466,25 +2497,35 @@ public class Loader extends SQLBaseVisitor<Object>{
             ArrayList<Constraint> constreintsHere = getAllForeignConstraints();
             for(Constraint c: constreintsHere){
                 if(c.foreignTable.equals(tablename)){
-                    Frame.jTextArea2.setText("ERROR: Existe una referencia a la tabla "+tablename);
+                    Debug.agregar("ERROR: Existe una referencia a la tabla "+tablename+"\n");
+                    if(!Frame.useVerbose){
+                        Frame.jTextArea2.setText("ERROR: Existe una referencia a la tabla "+tablename);
+                    }
                     return "ERROR";
                 }
             }
             //Verificamos si hay una DB en uso
             if(DBMS.currentDB==null){
-                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
-                return "ERROR";
+                Debug.agregar("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                }
+                 return "ERROR";
             }
             //se toma la base de datos
             DBMetaData d = DBMS.metaData.findDB(DBMS.currentDB);
             TablaMetaData t = d.findTable(tablename);
             //Se ve que existan el objeto
             if(t == null){
-                Frame.jTextArea2.setText("ERROR: No existe ninguna tabla con el nombre dado.");
+                Debug.agregar("ERROR: No existe ninguna tabla con el nombre dado.\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("ERROR: No existe ninguna tabla con el nombre dado.");
+                }
                 return "ERROR";
             }
-            if(Frame.useVerbose){
-                    Frame.jTextArea2.append("Borrando la tabla "+tablename);
+            Debug.agregar("Borrando la tabla "+tablename+"\n");
+            if(!Frame.useVerbose){
+                Frame.jTextArea2.append("Borrando la tabla "+tablename);
             }
             //Se borra la tabla
             d.tablas.remove(t);
@@ -2503,12 +2544,12 @@ public class Loader extends SQLBaseVisitor<Object>{
                 f2.delete();
                 f3.delete();
             }
-            if(Frame.useVerbose){
-                    Frame.jTextArea2.append("Tabla '"+tablename+ "' Borrada existosamente.");
+
+            Debug.agregar("Tabla '"+tablename+ "' Borrada existosamente.\n");
+            if(!Frame.useVerbose){
+                Frame.jTextArea2.setText("Tabla '"+tablename+ "' Borrada existosamente.");
             }
-            else{
-            Frame.jTextArea2.setText("Tabla '"+tablename+ "' Borrada existosamente.");
-            }
+
             return super.visitDropTableStmt(ctx);
 	}
 
@@ -2765,7 +2806,10 @@ public class Loader extends SQLBaseVisitor<Object>{
 	@Override
 	public Object visitSelectStmt(SQLParser.SelectStmtContext ctx) {
              if(DBMS.currentDB==null){
-                Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                Debug.agregar("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("ERROR: No existe ninguna base de datos en uso. Utilice USE DATABASE <nombre> para utilizar una base de datos existente.");
+                }
                 return "ERROR";
             
             }             
@@ -2775,7 +2819,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                 String tableName = n.getText();
                 Tabla t = Tabla.loadTable(tableName);
                 if(t==null){
-                    Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                    Debug.agregar("ERROR: No se encuentra la tabla: "+tableName+"\n");
+                    if(!Frame.useVerbose){
+                        Frame.jTextArea2.setText("ERROR: No se encuentra la tabla: "+tableName);
+                    }
                     return "ERRROR";
                 }
                 else{
@@ -2824,7 +2871,10 @@ public class Loader extends SQLBaseVisitor<Object>{
                     Columna existe = findCol(col,temp.columnas);
                     colsSelect.add(existe);
                     if(existe == null){
-                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+col);
+                        Debug.agregar("ERROR: No se encuentra la columna."+col+"\n");
+                        if(!Frame.useVerbose){
+                            Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+col);
+                        }
                         return "ERROR";
                     }
 
@@ -2861,15 +2911,19 @@ public class Loader extends SQLBaseVisitor<Object>{
                 //Se revisa si existen ORDER BY y de ser asi se toma cada uno sus datos  - resultadoFinal
                 
             if(ctx.orderExpr()!=null){
-                if(Frame.useVerbose){
-                    Frame.jTextArea2.append("Ordenando las columnas...");
+                Debug.agregar("Ordenando las columnas...\n");
+                if(!Frame.useVerbose){
+                    Frame.jTextArea2.setText("Ordenando las columnas...");
                 }
 
                 for(OrderTermContext n: ctx.orderExpr().orderTerm()){
                     String colName = n.colName().getText();
                     Columna a = findCol(colName, temp2.columnas);
                     if(a == null){
-                        Frame.jTextArea2.setText("ERROR: No se encuentra la columna."+colName);
+                        Debug.agregar("ERROR: No se encuentra la columna. "+colName+"\n");
+                        if(!Frame.useVerbose){
+                            Frame.jTextArea2.setText("ERROR: No se encuentra la columna. "+colName+"\n");
+                        }
                         return "ERROR";
                     }
                     String order = "";
@@ -2916,6 +2970,10 @@ public class Loader extends SQLBaseVisitor<Object>{
             Frame.forResults.add(newResult);
             Frame.forResults.revalidate();
             Frame.forResults.repaint();
+            Debug.agregar("Mostrando resultado de la query select\n");
+            if(!Frame.useVerbose){
+                Frame.jTextArea2.setText("Mostrando resultado de la query select");
+            }
             return true;
 	}
 
