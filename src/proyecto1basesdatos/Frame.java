@@ -34,6 +34,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import javax.swing.JScrollPane;
@@ -64,6 +65,8 @@ public class Frame extends javax.swing.JFrame {
     private int version = 0;
     private JSwitchBox switchB;
     public static boolean useVerbose = true;
+    public static JLabel numRows;
+    
     /**
      * Creates new form Frame
      */
@@ -98,6 +101,7 @@ public class Frame extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
+        numRows = new JLabel("");
         lineNumber = new TextLineNumber(jTextArea1);
         jScrollPane1.setRowHeaderView( lineNumber );
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -182,6 +186,8 @@ public class Frame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(525, 525, 525)
                 .addComponent(switchB)
+                .addGap(525, 525, 525)
+                .addComponent(numRows)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -196,6 +202,8 @@ public class Frame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(switchB)
                 .addGap(29, 29, 29)
+                    .addComponent(numRows)
+                .addGap(29, 29, 29)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -207,7 +215,7 @@ public class Frame extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 
         String[] wordsNot = {"CREATE","DATABASE", "DATABASES", "ALTER", "DROP", "SHOW", "USE", "TABLE", "INT", "FLOAT",
-                              "DATE", "CHAR", "CONSTRAINT", "PRIMARY", "KEY", "FOREIGN", "CHECK", "REFERENCES", "TABLES",
+                              "DATE", "CHAR","INT,", "FLOAT,","DATE,", "CHAR,", "CONSTRAINT", "PRIMARY", "KEY", "FOREIGN", "CHECK", "REFERENCES", "TABLES",
                                 "COLUMN", "FROM", "ADD", "AND", "OR", "NOT", "INSERT", "INTO", "WHERE", "UPDATE", "SET",
                                 "DELETE", "SELECT", "ORDER", "BY", "ASC", "DESC", "VALUES", "RENAME", "TO", "NULL", "NULL,"}; //esto es un comentario
         
@@ -245,7 +253,7 @@ public class Frame extends javax.swing.JFrame {
             SQLParser parser = new SQLParser(tokenStream);
             parser.removeErrorListeners();
             parser.addErrorListener(new ThrowingErrorListener(this));
-            //parser.query().inspect(parser);
+            parser.query()/*.inspect(parser)*/;
             if (!error) {
                 dbms.executeQuery(srcFinal);
                 System.out.print("  ");

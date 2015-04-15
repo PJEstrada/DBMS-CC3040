@@ -1,0 +1,14 @@
+Base de Datos: TEST
+Numero Tablas: 2
+
+Tabla: films 
+Cantidad de Registros: 0
+tittle TIPO: CHAR(255),  release_date TIPO: DATE,  kind TIPO: CHAR(255),  duracion TIPO: FLOAT,  newcol1 TIPO: INT,  
+CONSTRAINTS: 
+
+Tabla: films2 
+Cantidad de Registros: 10
+tittle TIPO: CHAR(255),  release_date TIPO: DATE,  kind TIPO: CHAR(255),  duracion TIPO: FLOAT,  newcol1 TIPO: INT,  
+CONSTRAINTS: 
+
+

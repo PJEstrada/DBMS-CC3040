@@ -35,6 +35,7 @@ public class Resultados extends ScrollPane{
     String[][] filasT;
     JTable table;
     JTable table2;
+    int cantidadFilas = 0;
     //metodo para poder llenar la data
     public void fillData()
     {
@@ -48,7 +49,9 @@ public class Resultados extends ScrollPane{
             String[] filaI = new String[datos.get(i).size()];
             filaI = datos.get(i).toArray(filaI);
             filasT[i] = filaI;
+            cantidadFilas++;
         }
+        Frame.numRows.setText("Numero Filas: "+cantidadFilas);
         table = new JTable(filasT, dataC);
         if(columnas2.size()>=0 && datos2.size()>=0)
         {

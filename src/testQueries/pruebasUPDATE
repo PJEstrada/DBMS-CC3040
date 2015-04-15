@@ -9,7 +9,7 @@ INSERT INTO films VALUES ('test1','1985-02-02','test1',10,10)
 UPDATE asignacion SET materia = 'test22' WHERE materia = 'test1'
 UPDATE asignacion SET materia = 'test2' WHERE materia = 'test1'
 
-
+INSERT INTO films VALUES ('test1','1985-02-02','test1',5.2,10);
 /*Pruebas*/
 CREATE TABLE films
 (
