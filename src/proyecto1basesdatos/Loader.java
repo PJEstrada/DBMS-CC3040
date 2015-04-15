@@ -293,6 +293,9 @@ public class Loader extends SQLBaseVisitor<Object>{
                     return "ERROR";
                 }
                 else{
+                    if(DBMS.currentDB.equalsIgnoreCase(name)){
+                        DBMS.currentDB = "";
+                    }
                     return name;
                 
                 }

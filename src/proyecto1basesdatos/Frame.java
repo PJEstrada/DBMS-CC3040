@@ -245,7 +245,7 @@ public class Frame extends javax.swing.JFrame {
             SQLParser parser = new SQLParser(tokenStream);
             parser.removeErrorListeners();
             parser.addErrorListener(new ThrowingErrorListener(this));
-            parser.query().inspect(parser);
+            //parser.query().inspect(parser);
             if (!error) {
                 dbms.executeQuery(srcFinal);
                 System.out.print("  ");

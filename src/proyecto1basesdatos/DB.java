@@ -116,6 +116,7 @@ public class DB {
 
                     DBMS.metaData.dbs.remove(db);
                     DBMS.guardar();
+                    DBMS.metaData.writeMetadata();
                     Debug.agregar("Base de datos "+name+" Eliminada.");
                     if(!Frame.useVerbose){
                         Frame.jTextArea2.setText("Base de datos "+name+" Eliminada.");
